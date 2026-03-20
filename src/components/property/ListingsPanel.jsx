@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, SlidersHorizontal } from 'lucide-react';
 import PropertyCard from './PropertyCard';
+import './ListingsPanel.css';
 
 const listings = [
     {
@@ -75,35 +76,31 @@ export default function ListingsPanel() {
     ];
 
     return (
-        <div className="w-full h-full flex flex-col bg-background p-4 lg:p-6 overflow-y-auto scrollbar-hide">
+        <div className="listings-panel scrollbar-hide">
 
             {/* Header section */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-4">
+            <div className="listings-header">
                 <div>
-                    <h1 className="text-[1.3rem] font-bold text-gray-900 leading-tight mb-1">Active Advertisements</h1>
-                    <p className="text-gray-500 text-sm">Prices do not include taxes and additional fees.</p>
+                    <h1>Active Advertisements</h1>
+                    <p>Prices do not include taxes and additional fees.</p>
                 </div>
 
                 {/* Controls Row */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="listings-controls">
 
                     {/* Tabs */}
-                    <div className="flex items-center space-x-1 bg-gray-100/80 p-1.5 rounded-xl border border-gray-200/60 shadow-inner">
+                    <div className="listings-tabs">
                         {tabs.map((tab) => {
                             const isActive = activeTab === tab.label;
                             return (
                                 <button
                                     key={tab.label}
                                     onClick={() => setActiveTab(tab.label)}
-                                    className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                    ${isActive
-                                            ? 'bg-gray-900 text-white shadow-md'
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-white/60'
-                                        }`}
+                                    className={`tab-button ${isActive ? 'active' : ''}`}
                                 >
                                     {tab.label}
                                     {tab.count && (
-                                        <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-md ${isActive ? 'bg-gray-800 text-gray-300' : 'bg-gray-200 text-gray-500'}`}>
+                                        <span className="tab-count">
                                             {tab.count}
                                         </span>
                                     )}
@@ -113,7 +110,7 @@ export default function ListingsPanel() {
                     </div>
 
                     {/* Sort Dropdown */}
-                    <button className="flex items-center space-x-2 bg-white border border-gray-200 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-sm">
+                    <button className="btn-sort">
                         <SlidersHorizontal className="w-4 h-4 text-gray-500" />
                         <span>Sort by: Default</span>
                         <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -122,7 +119,7 @@ export default function ListingsPanel() {
             </div>
 
             {/* Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 pb-10">
+            <div className="listings-grid">
                 {listings.map((listing) => (
                     <PropertyCard key={listing.id} {...listing} />
                 ))}

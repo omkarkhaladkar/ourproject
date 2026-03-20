@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Map, { Marker, NavigationControl } from 'react-map-gl/mapbox';
+import './MapPanel.css';
 
 const MAPBOX_TOKEN = 'pk.eyJ1IjoidGVqYXNrdW1iaGFya2FyIiwiYSI6ImNtbHM4ZzA2ZjAzdm4zZXNlMGJvNG1idHIifQ.bchatKOS3pHncudL53MNfQ';
 
@@ -58,7 +59,7 @@ export default function MapPanel() {
     const [activePin, setActivePin] = useState(1);
 
     return (
-        <div className="w-full h-full relative">
+        <div className="map-container">
             <Map
                 initialViewState={{
                     longitude: 18.8400,
@@ -83,18 +84,16 @@ export default function MapPanel() {
                                 e.stopPropagation();
                                 setActivePin(loc.id);
                             }}
-                            className={`flex items-center bg-white p-1 rounded-[12px] shadow-md cursor-pointer transition-all duration-300 transform hover:scale-110 select-none
-                ${activePin === loc.id ? 'ring-2 ring-indigo-600 shadow-xl z-20 scale-110' : 'ring-1 ring-gray-200 z-10 hover:z-20'}`}
-                            style={{ paddingRight: '10px' }}
+                            className={`marker-pin ${activePin === loc.id ? 'active' : ''}`}
                         >
                             <img
                                 src={loc.image}
                                 alt={loc.title}
-                                className="w-8 h-8 rounded-[8px] object-cover mr-2"
+                                className="marker-image"
                             />
-                            <span className="text-[13px] font-bold text-gray-900 leading-none">
+                            <span className="marker-price">
                                 {loc.price.split('.')[0]}
-                                <span className="text-[10px] text-gray-400">.{loc.price.split('.')[1]}</span>
+                                <span className="marker-price-decimal">.{loc.price.split('.')[1]}</span>
                             </span>
                         </div>
                     </Marker>
