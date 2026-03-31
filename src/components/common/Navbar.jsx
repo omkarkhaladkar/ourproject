@@ -1,168 +1,126 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Bell, Bookmark, ChevronDown, Home, Search, Phone, Menu, X, PlusCircle, User, Heart, List, LogOut } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+﻿import React, { useEffect, useRef, useState } from 'react';
+import { ChevronDown, Home, Building2, KeyRound, Phone, PlusCircle, User, Heart, List, LogOut, BarChart3, Shield } from 'lucide-react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 import CitySearch from './CitySearch';
+import useAuth from '../../hooks/useAuth';
 
 const navItems = [
-    { label: 'Home', to: '/', icon: Home },
-    { label: 'Buy', to: '/buy', icon: Search },
-    { label: 'Rent', to: '/rent', icon: Search },
-    { label: 'Contact Us', to: '/contact', icon: Phone },
+  { label: 'Home', to: '/', icon: Home },
+  { label: 'Buy', to: '/buy', icon: Building2 },
+  { label: 'Rent', to: '/rent', icon: KeyRound },
+  { label: 'Contact Us', to: '/contact', icon: Phone },
 ];
 
 export default function Navbar() {
-    const [mobileOpen, setMobileOpen] = useState(false);
-    const [profileOpen, setProfileOpen] = useState(false);
-    const profileRef = useRef(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
+  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const displayName = user?.name || 'Guest';
+  const displayEmail = user?.email || 'Welcome to Purandar Estate';
+  const avatarInitial = (displayName || 'G').trim().charAt(0).toUpperCase();
+  const authRouteState = { backgroundLocation: location };
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (profileRef.current && !profileRef.current.contains(event.target)) {
-                setProfileOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-    return (
-        <nav className="navbar">
-            {/* Main Bar */}
-            <div className="navbar-container">
-                {/* Logo */}
-                <div className="logo-container">
-                    <span
-                        style={{ fontFamily: "'Caveat', cursive" }}
-                        className="logo-urban"
-                    >
-                        Urban
-                    </span>
-                    <span className="logo-premier">Premier</span>
+  const doLogout = async () => {
+    await logout();
+    setProfileOpen(false);
+    navigate('/');
+  };
+
+  const mobileTabs = [
+    { label: 'Home', to: '/', icon: Home, end: true },
+    { label: 'Buy', to: '/buy', icon: Building2 },
+    { label: 'Rent', to: '/rent', icon: KeyRound },
+    { label: 'Saved', to: isAuthenticated ? '/profile/saved' : '/login', icon: Heart, state: isAuthenticated ? undefined : authRouteState },
+    { label: isAuthenticated ? 'Profile' : 'Login', to: isAuthenticated ? '/profile' : '/login', icon: User, state: isAuthenticated ? undefined : authRouteState },
+  ];
+
+  return (
+    <>
+      <nav className="navbar">
+        <div className="navbar-container">
+          <div className="logo-container" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+            <span style={{ fontFamily: "'Caveat', cursive" }} className="logo-urban">Purandar</span>
+            <span className="logo-premier">Estate</span>
+          </div>
+
+          <CitySearch />
+
+          <div className="desktop-nav">
+            {navItems.map(({ label, to }) => (
+              <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                {label}
+              </NavLink>
+            ))}
+          </div>
+
+          <div className="navbar-controls">
+            <NavLink to="/post-property/form" className="btn-sell"><PlusCircle className="w-4 h-4" />Post Property</NavLink>
+            <button className="icon-button" onClick={() => navigate(isAuthenticated ? '/profile/saved' : '/login', isAuthenticated ? undefined : { state: authRouteState })} aria-label="Favorite properties">
+              <Heart className="w-[22px] h-[22px]" />
+            </button>
+
+            {!isAuthenticated ? (
+              <div className="auth-actions">
+                <NavLink to="/login" state={authRouteState} className="auth-btn auth-btn-secondary">Login</NavLink>
+                <NavLink to="/signup" state={authRouteState} className="auth-btn auth-btn-primary">Sign Up</NavLink>
+              </div>
+            ) : null}
+
+            {isAuthenticated ? (
+              <div className="user-profile-wrapper" ref={profileRef}>
+                <div className={`user-profile ${profileOpen ? 'active' : ''}`} onClick={() => setProfileOpen(!profileOpen)}>
+                  <div className="avatar avatar-initial" aria-label={`${displayName} avatar`}>
+                    {avatarInitial}
+                  </div>
+                  <div className="user-info">
+                    <span className="user-name">{displayName}</span>
+                    <span className="user-email">{displayEmail}</span>
+                  </div>
+                  <ChevronDown className={`chevron-icon ${profileOpen ? 'rotate' : ''}`} />
                 </div>
-
-                {/* City Search Bar */}
-                <CitySearch />
-
-                {/* Desktop Nav Links */}
-                <div className="desktop-nav">
-                    {navItems.map(({ label, to }) => (
-                        <NavLink
-                            key={to}
-                            to={to}
-                            end={to === '/'}
-                            className={({ isActive }) =>
-                                `nav-link ${isActive ? 'active' : ''}`
-                            }
-                        >
-                            {({ isActive }) => (
-                                <>
-                                    {label}
-                                    {isActive && (
-                                        <div className="nav-indicator" />
-                                    )}
-                                </>
-                            )}
-                        </NavLink>
-                    ))}
-                </div>
-
-                {/* Right Controls */}
-                <div className="navbar-controls">
-                    <button className="icon-button">
-                        <Bell className="w-[22px] h-[22px]" />
-                        <span className="notification-dot"></span>
-                    </button>
-                    <button className="icon-button mobile-hide-sm">
-                        <Bookmark className="w-[22px] h-[22px]" />
-                    </button>
-
-                    {/* Sell Property CTA */}
-                    <NavLink
-                        to="/post-property"
-                        className="btn-sell"
-                    >
-                        <PlusCircle className="w-4 h-4" />
-                        Sell Property
-                    </NavLink>
-
-                    <div className="user-profile-wrapper" ref={profileRef}>
-                        <div
-                            className={`user-profile ${profileOpen ? 'active' : ''}`}
-                            onClick={() => setProfileOpen(!profileOpen)}
-                        >
-                            <img
-                                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                                alt="User Avatar"
-                                className="avatar"
-                            />
-                            <div className="user-info">
-                                <span className="user-name">Jane Doe</span>
-                                <span className="user-email">janedoe@example.com</span>
-                            </div>
-                            <ChevronDown className={`chevron-icon ${profileOpen ? 'rotate' : ''}`} />
-                        </div>
-
-                        {/* Profile Dropdown */}
-                        {profileOpen && (
-                            <div className="profile-dropdown">
-                                <div className="dropdown-header">
-                                    <p className="dropdown-user-name">Jane Doe</p>
-                                    <p className="dropdown-user-email">janedoe@example.com</p>
-                                </div>
-                                <div className="dropdown-divider" />
-                                <div className="dropdown-links">
-                                    <NavLink to="/profile" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                                        <User className="w-4 h-4" />
-                                        <span>Profile</span>
-                                    </NavLink>
-                                    <NavLink to="/profile/saved" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                                        <Heart className="w-4 h-4" />
-                                        <span>My Favourite</span>
-                                    </NavLink>
-                                    <NavLink to="/profile/properties" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                                        <List className="w-4 h-4" />
-                                        <span>My Properties</span>
-                                    </NavLink>
-                                </div>
-                                <div className="dropdown-divider" />
-                                <button className="dropdown-item logout-item">
-                                    <LogOut className="w-4 h-4" />
-                                    <span>Logout</span>
-                                </button>
-                            </div>
-                        )}
+                {profileOpen ? (
+                  <div className="profile-dropdown">
+                    <div className="dropdown-header">
+                      <p className="dropdown-user-name">{displayName}</p>
+                      <p className="dropdown-user-email">{displayEmail}</p>
                     </div>
+                    <div className="dropdown-links">
+                      <NavLink to="/profile" className="dropdown-item" onClick={() => setProfileOpen(false)}><User className="w-4 h-4" />Profile</NavLink>
+                      <NavLink to="/profile/saved" className="dropdown-item" onClick={() => setProfileOpen(false)}><Heart className="w-4 h-4" />Favourites</NavLink>
+                      <NavLink to="/profile/properties" className="dropdown-item" onClick={() => setProfileOpen(false)}><List className="w-4 h-4" />My Properties</NavLink>
+                      <NavLink to="/profile/dashboard" className="dropdown-item" onClick={() => setProfileOpen(false)}><BarChart3 className="w-4 h-4" />Dashboard</NavLink>
+                      {user?.role === 'admin' ? <NavLink to="/admin" className="dropdown-item" onClick={() => setProfileOpen(false)}><Shield className="w-4 h-4" />Admin Dashboard</NavLink> : null}
+                    </div>
+                    <button className="dropdown-item logout-item" onClick={doLogout}><LogOut className="w-4 h-4" />Logout</button>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </nav>
 
-                    {/* Mobile menu toggle */}
-                    <button
-                        className="mobile-toggle"
-                        onClick={() => setMobileOpen(o => !o)}
-                    >
-                        {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                    </button>
-                </div>
-            </div>
-
-            {/* Mobile Dropdown */}
-            {mobileOpen && (
-                <div className="mobile-dropdown">
-                    {navItems.map(({ label, to, icon: Icon }) => (
-                        <NavLink
-                            key={to}
-                            to={to}
-                            end={to === '/'}
-                            onClick={() => setMobileOpen(false)}
-                            className={({ isActive }) =>
-                                `mobile-nav-link ${isActive ? 'active' : ''}`
-                            }
-                        >
-                            <Icon className="w-4 h-4" />
-                            {label}
-                        </NavLink>
-                    ))}
-                </div>
-            )}
-        </nav>
-    );
+      <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
+        {mobileTabs.map(({ label, to, icon: Icon, end, state }) => (
+          <NavLink key={label} to={to} state={state} end={end} className={({ isActive }) => `mobile-tab-link ${isActive ? 'active' : ''}`}>
+            <Icon className="w-5 h-5" />
+            <span>{label}</span>
+          </NavLink>
+        ))}
+      </nav>
+    </>
+  );
 }

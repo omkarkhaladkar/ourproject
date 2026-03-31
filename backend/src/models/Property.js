@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+﻿import mongoose from 'mongoose';
 
 const propertySchema = new mongoose.Schema(
   {
@@ -11,6 +11,20 @@ const propertySchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: '',
+    },
+    displaySellerName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    displaySellerPhone: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    useOriginalSellerContact: {
+      type: Boolean,
+      default: true,
     },
     intent: {
       type: String,
@@ -91,6 +105,9 @@ const propertySchema = new mongoose.Schema(
     gatedCommunity: { type: String, default: '' },
     description: { type: String, trim: true, default: '' },
     score: { type: Number, default: 0 },
+    viewCount: { type: Number, default: 0 },
+    lastViewedAt: { type: Date, default: null },
+    featuredOnHome: { type: Boolean, default: false },
     status: {
       type: String,
       enum: ['pending', 'approved', 'rejected', 'archived'],
@@ -108,6 +125,8 @@ const propertySchema = new mongoose.Schema(
 
 propertySchema.index({ status: 1, intent: 1, city: 1, price: 1 });
 propertySchema.index({ owner: 1, status: 1, updatedAt: -1 });
+propertySchema.index({ owner: 1, viewCount: -1 });
+propertySchema.index({ featuredOnHome: 1, status: 1, publishedAt: -1 });
 
 const Property = mongoose.model('Property', propertySchema);
 

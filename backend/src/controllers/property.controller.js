@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+﻿import mongoose from 'mongoose';
 import Property from '../models/Property.js';
 import Enquiry from '../models/Enquiry.js';
 import ApiError from '../utils/ApiError.js';
@@ -55,6 +55,23 @@ const normalizePayload = (payload) => {
   return data;
 };
 
+const buildAreaFilter = (query) => {
+  if (!query.minArea && !query.maxArea) return null;
+
+  const range = {};
+  if (query.minArea) range.$gte = Number(query.minArea);
+  if (query.maxArea) range.$lte = Number(query.maxArea);
+
+  return {
+    $or: [
+      { totalArea: range },
+      { carpetArea: range },
+      { plotArea: range },
+      { superBuiltUpArea: range },
+    ],
+  };
+};
+
 const buildPublicFilters = (query) => {
   const filter = { status: 'approved' };
 
@@ -63,11 +80,21 @@ const buildPublicFilters = (query) => {
   if (query.city) filter.city = new RegExp(query.city, 'i');
   if (query.locality) filter.locality = new RegExp(query.locality, 'i');
   if (query.propertyType) filter.propertyType = query.propertyType;
+  if (query.featuredOnHome === 'true') filter.featuredOnHome = true;
+
+  if (query.bedrooms) {
+    filter.bedrooms = query.bedrooms === '5' ? { $gte: 5 } : Number(query.bedrooms);
+  }
 
   if (query.minPrice || query.maxPrice) {
     filter.price = {};
     if (query.minPrice) filter.price.$gte = Number(query.minPrice);
     if (query.maxPrice) filter.price.$lte = Number(query.maxPrice);
+  }
+
+  const areaFilter = buildAreaFilter(query);
+  if (areaFilter) {
+    filter.$and = [...(filter.$and || []), areaFilter];
   }
 
   return filter;
@@ -109,7 +136,7 @@ export const listProperties = asyncHandler(async (req, res) => {
       .skip(skip)
       .limit(limit)
       .select('-moderationMessage')
-      .populate('owner', 'name phone email'),
+      .populate('owner', 'name'),
     Property.countDocuments(filter),
   ]);
 
@@ -144,6 +171,15 @@ export const getPropertyById = asyncHandler(async (req, res) => {
     }
   }
 
+  if (property.status === 'approved') {
+    await Property.updateOne(
+      { _id: property._id },
+      { $inc: { viewCount: 1 }, $set: { lastViewedAt: new Date() } },
+    );
+    property.viewCount = (property.viewCount || 0) + 1;
+    property.lastViewedAt = new Date();
+  }
+
   res.json({ success: true, data: property });
 });
 
@@ -161,16 +197,19 @@ export const createProperty = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'price is required');
   }
 
+  const isAdmin = req.user.role === 'admin';
   const property = await Property.create({
     ...payload,
     owner: req.user._id,
     userName: req.user.name,
-    status: 'pending',
+    status: isAdmin ? 'approved' : 'pending',
+    approvedAt: isAdmin ? new Date() : null,
+    publishedAt: isAdmin ? new Date() : null,
   });
 
   res.status(201).json({
     success: true,
-    message: 'Property submitted for review',
+    message: req.user.role === 'admin' ? 'Property created successfully' : 'Property submitted for review',
     data: property,
   });
 });
@@ -208,6 +247,53 @@ export const deleteProperty = asyncHandler(async (req, res) => {
   });
 });
 
+export const unlockSellerDetails = asyncHandler(async (req, res) => {
+  const property = await Property.findOne({ _id: req.params.id, status: 'approved' }).populate('owner', 'name phone email');
+
+  if (!property) {
+    throw new ApiError(404, 'Property not found');
+  }
+
+  const isOwner = property.owner?._id?.toString() === req.user._id.toString();
+  const isAdmin = req.user.role === 'admin';
+
+  if (!isOwner && !isAdmin) {
+    await Enquiry.findOneAndUpdate(
+      {
+        property: property._id,
+        propertyOwner: property.owner._id,
+        user: req.user._id,
+        leadType: 'seller_detail',
+      },
+      {
+        $set: {
+          name: req.user.name,
+          email: req.user.email,
+          phone: req.user.phone || '',
+        },
+        $setOnInsert: {
+          message: 'Requested seller details',
+          status: 'new',
+          leadType: 'seller_detail',
+        },
+      },
+      {
+        upsert: true,
+        new: true,
+      },
+    );
+  }
+
+  res.json({
+    success: true,
+    data: {
+      name: property.useOriginalSellerContact ? (property.owner?.name || property.userName || 'Owner') : (property.displaySellerName || property.owner?.name || property.userName || 'Owner'),
+      phone: property.useOriginalSellerContact ? (property.owner?.phone || '') : (property.displaySellerPhone || property.owner?.phone || ''),
+      email: property.owner?.email || '',
+    },
+  });
+});
+
 export const createEnquiry = asyncHandler(async (req, res) => {
   const property = await Property.findOne({ _id: req.params.id, status: 'approved' });
   if (!property) {
@@ -227,6 +313,7 @@ export const createEnquiry = asyncHandler(async (req, res) => {
     email,
     phone,
     message,
+    leadType: 'enquiry',
   });
 
   res.status(201).json({
@@ -249,32 +336,43 @@ export const listPropertyEnquiries = asyncHandler(async (req, res) => {
 export const getPropertyStats = asyncHandler(async (req, res) => {
   const ownerObjectId = new mongoose.Types.ObjectId(req.user._id);
 
-  const [summary] = await Property.aggregate([
-    { $match: { owner: ownerObjectId, status: { $ne: 'archived' } } },
-    {
-      $group: {
-        _id: null,
-        total: { $sum: 1 },
-        approved: {
-          $sum: { $cond: [{ $eq: ['$status', 'approved'] }, 1, 0] },
-        },
-        pending: {
-          $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] },
-        },
-        rejected: {
-          $sum: { $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0] },
+  const [summary, sellerDetailLeads, newSellerDetailLeads] = await Promise.all([
+    Property.aggregate([
+      { $match: { owner: ownerObjectId, status: { $ne: 'archived' } } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          approved: {
+            $sum: { $cond: [{ $eq: ['$status', 'approved'] }, 1, 0] },
+          },
+          pending: {
+            $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] },
+          },
+          rejected: {
+            $sum: { $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0] },
+          },
+          totalViews: { $sum: '$viewCount' },
         },
       },
-    },
+    ]),
+    Enquiry.countDocuments({ propertyOwner: ownerObjectId, leadType: 'seller_detail' }),
+    Enquiry.countDocuments({ propertyOwner: ownerObjectId, leadType: 'seller_detail', status: 'new' }),
   ]);
 
   res.json({
     success: true,
-    data: summary || {
-      total: 0,
-      approved: 0,
-      pending: 0,
-      rejected: 0,
+    data: {
+      total: summary?.[0]?.total || 0,
+      approved: summary?.[0]?.approved || 0,
+      pending: summary?.[0]?.pending || 0,
+      rejected: summary?.[0]?.rejected || 0,
+      totalViews: summary?.[0]?.totalViews || 0,
+      sellerDetailLeads,
+      newSellerDetailLeads,
     },
   });
 });
+
+
+

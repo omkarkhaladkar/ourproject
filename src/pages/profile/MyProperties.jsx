@@ -1,101 +1,78 @@
-import React from 'react';
-import { MapPin, Edit, Trash2, Eye } from 'lucide-react';
-import { Link } from 'react-router-dom';
+﻿import React, { useEffect, useState } from 'react';
+import { MapPin, Pencil, Trash2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import userService from '../../services/userService';
+import propertyService from '../../services/propertyService';
+import { formatCompactPrice } from '../../utils/formatPrice';
+import Loader from '../../components/common/Loader';
+import EmptyState from '../../components/common/EmptyState';
 import './MyProperties.css';
 
-// Mock data for user's properties
-const myProperties = [
-    {
-        id: 101,
-        title: "2 BHK Apartment in Kothrud",
-        price: "85 L",
-        location: "Kothrud, Pune",
-        status: "Active",
-        views: 124,
-        leads: 12,
-        image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    },
-    {
-        id: 102,
-        title: "Commercial Shop near Station",
-        price: "45 L",
-        location: "Pune Station Road",
-        status: "Pending Review",
-        views: 0,
-        leads: 0,
-        image: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    }
-];
-
 export default function MyProperties() {
-    return (
-        <div className="profile-page">
-            <div className="page-header">
-                <div>
-                    <h1 className="page-title">My Properties</h1>
-                    <p className="page-subtitle">Manage your listed properties and leads.</p>
-                </div>
-                <Link to="/post-property" className="btn btn-primary">
-                    Post New Property
-                </Link>
-            </div>
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
-            {myProperties.length > 0 ? (
-                <div className="my-properties-list">
-                    {myProperties.map((property) => (
-                        <div key={property.id} className="my-property-card">
-                            <div className="property-image-col">
-                                <img src={property.image} alt={property.title} />
-                                <span className={`status-badge ${property.status === 'Active' ? 'active' : 'pending'}`}>
-                                    {property.status}
-                                </span>
-                            </div>
-                            
-                            <div className="property-info-col">
-                                <div className="property-header">
-                                    <h3 className="property-title">{property.title}</h3>
-                                    <span className="property-price">₹ {property.price}</span>
-                                </div>
-                                
-                                <div className="property-location">
-                                    <MapPin className="w-4 h-4" />
-                                    <span>{property.location}</span>
-                                </div>
+  const load = async () => {
+    setLoading(true);
+    try {
+      const response = await userService.getMyProperties();
+      setProperties(response.data.data || []);
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                                <div className="property-stats">
-                                    <div className="stat-item">
-                                        <span className="stat-label">Views:</span>
-                                        <span className="stat-value">{property.views}</span>
-                                    </div>
-                                    <div className="stat-item">
-                                        <span className="stat-label">Leads:</span>
-                                        <span className="stat-value">{property.leads}</span>
-                                    </div>
-                                </div>
+  useEffect(() => { load(); }, []);
 
-                                <div className="property-actions">
-                                    <button className="action-btn view-btn" title="View Details">
-                                        <Eye className="w-4 h-4" /> View
-                                    </button>
-                                    <button className="action-btn edit-btn" title="Edit Property">
-                                        <Edit className="w-4 h-4" /> Edit
-                                    </button>
-                                    <button className="action-btn delete-btn" title="Remove Property">
-                                        <Trash2 className="w-4 h-4" /> Delete
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <div className="empty-state">
-                    <p>You haven't listed any properties yet.</p>
-                    <Link to="/post-property" className="btn btn-primary mt-4">
-                        Post Property
-                    </Link>
-                </div>
-            )}
+  const archiveProperty = async (propertyId) => {
+    await propertyService.remove(propertyId);
+    await load();
+  };
+
+  if (loading) return <Loader label="Loading your properties..." />;
+
+  return (
+    <div className="profile-page">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">My Properties</h1>
+          <p className="page-subtitle">Create, edit, and archive your listings.</p>
         </div>
-    );
+        <Link to="/post-property/form" className="my-properties-cta">Post New Property</Link>
+      </div>
+
+      {message ? <p>{message}</p> : null}
+
+      {properties.length ? (
+        <div className="my-properties-list">
+          {properties.map((property) => (
+            <div key={property._id} className="my-property-card">
+              <div className="property-image-col">
+                <img src={property.photos?.[0]} alt={property.title} />
+                <span className={`status-badge ${property.status === 'approved' ? 'active' : 'pending'}`}>{property.status}</span>
+              </div>
+              <div className="property-info-col">
+                <div className="property-header">
+                  <h3 className="property-title">{property.title}</h3>
+                  <span className="property-price">{formatCompactPrice(property.price)}</span>
+                </div>
+                <div className="property-location"><MapPin className="w-4 h-4" /><span>{[property.locality, property.city].filter(Boolean).join(', ')}</span></div>
+                <div className="property-actions">
+                  <button className="action-btn edit-btn" onClick={() => navigate(`/post-property/form?edit=${property._id}`)}><Pencil className="w-4 h-4" /> Edit</button>
+                  <button className="action-btn delete-btn" onClick={() => archiveProperty(property._id)}><Trash2 className="w-4 h-4" /> Archive</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <EmptyState title="You haven't listed any properties yet." description="Add your first property to create a real MongoDB listing." />
+      )}
+    </div>
+  );
 }
+

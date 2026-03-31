@@ -1,6 +1,7 @@
-import User from '../models/User.js';
+﻿import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
+import { env } from '../config/env.js';
 import {
   buildAuthPayload,
   createAccessToken,
@@ -14,6 +15,22 @@ const cookieOptions = {
   sameSite: 'lax',
   secure: false,
 };
+
+const assertDemoOtp = (otp) => {
+  if (!otp) {
+    throw new ApiError(400, 'Demo OTP is required');
+  }
+
+  if (otp !== env.DEMO_OTP) {
+    throw new ApiError(401, 'Invalid demo OTP');
+  }
+};
+
+const normalizePhone = (phone = '') => phone.trim();
+
+const buildPhonePlaceholderEmail = (phone) => `phone.${phone}@purandar.local`;
+
+const buildPhonePlaceholderPassword = (phone) => `PhoneAuth@${phone}`;
 
 const sendAuthResponse = async (user, res) => {
   const accessToken = createAccessToken(user);
@@ -42,12 +59,49 @@ const sendAuthResponse = async (user, res) => {
   });
 };
 
+export const requestDemoOtp = asyncHandler(async (req, res) => {
+  const { email, phone } = req.body;
+
+  if (!email && !phone) {
+    throw new ApiError(400, 'Email or phone is required to request a demo OTP');
+  }
+
+  res.json({
+    success: true,
+    message: 'Demo OTP sent successfully',
+    data: {
+      otp: env.DEMO_OTP,
+      expiresIn: '10m',
+    },
+  });
+});
+
+export const checkPhone = asyncHandler(async (req, res) => {
+  const phone = normalizePhone(req.body.phone);
+
+  if (!phone) {
+    throw new ApiError(400, 'Phone number is required');
+  }
+
+  const user = await User.findOne({ phone }).select('name role phone');
+
+  res.json({
+    success: true,
+    data: {
+      exists: Boolean(user),
+      user: user ? { name: user.name, role: user.role, phone: user.phone } : null,
+    },
+  });
+});
+
 export const register = asyncHandler(async (req, res) => {
-  const { name, email, password, phone, role } = req.body;
+  const { name, email, password, phone, role, demoOtp } = req.body;
 
   if (!name || !email || !password) {
     throw new ApiError(400, 'Name, email, and password are required');
   }
+
+  assertDemoOtp(demoOtp);
 
   const exists = await User.findOne({ email: email.toLowerCase() });
   if (exists) {
@@ -65,16 +119,67 @@ export const register = asyncHandler(async (req, res) => {
   await sendAuthResponse(user, res);
 });
 
+export const registerWithPhone = asyncHandler(async (req, res) => {
+  const { name, phone: rawPhone, role, demoOtp } = req.body;
+  const phone = normalizePhone(rawPhone);
+
+  if (!name || !phone) {
+    throw new ApiError(400, 'Name and phone are required');
+  }
+
+  assertDemoOtp(demoOtp);
+
+  const existingPhoneUser = await User.findOne({ phone });
+  if (existingPhoneUser) {
+    throw new ApiError(409, 'An account with this phone number already exists');
+  }
+
+  const user = await User.create({
+    name,
+    email: buildPhonePlaceholderEmail(phone),
+    password: buildPhonePlaceholderPassword(phone),
+    phone,
+    role: role === 'agent' ? 'agent' : 'user',
+  });
+
+  await sendAuthResponse(user, res);
+});
+
 export const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, demoOtp } = req.body;
 
   if (!email || !password) {
     throw new ApiError(400, 'Email and password are required');
   }
 
+  assertDemoOtp(demoOtp);
+
   const user = await User.findOne({ email: email.toLowerCase() }).select('+password +refreshTokenHash');
   if (!user || !(await user.comparePassword(password))) {
     throw new ApiError(401, 'Invalid email or password');
+  }
+
+  if (!user.isActive) {
+    throw new ApiError(403, 'This account is disabled');
+  }
+
+  await sendAuthResponse(user, res);
+});
+
+export const loginWithPhone = asyncHandler(async (req, res) => {
+  const phone = normalizePhone(req.body.phone);
+  const { demoOtp } = req.body;
+
+  if (!phone) {
+    throw new ApiError(400, 'Phone number is required');
+  }
+
+  assertDemoOtp(demoOtp);
+
+  const user = await User.findOne({ phone }).select('+refreshTokenHash');
+
+  if (!user) {
+    throw new ApiError(404, 'No account found for this phone number');
   }
 
   if (!user.isActive) {

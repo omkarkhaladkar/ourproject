@@ -1,4 +1,4 @@
-# Purandar Backend
+﻿# Purandar Backend
 
 Node.js + Express + MongoDB backend for authentication, authorization, property listings, enquiries, saved properties, profile management, and admin moderation.
 
@@ -6,7 +6,7 @@ Node.js + Express + MongoDB backend for authentication, authorization, property 
 
 1. Copy `.env.example` to `.env`.
 2. Install dependencies inside `backend/` with `npm install`.
-3. Start MongoDB locally or point `MONGODB_URI` to Atlas.
+3. Set `MONGODB_URI`, `JWT_ACCESS_SECRET`, and `JWT_REFRESH_SECRET` in `backend/.env`.
 4. Run `npm run seed:admin`.
 5. Run `npm run dev`.
 
@@ -35,3 +35,5 @@ Node.js + Express + MongoDB backend for authentication, authorization, property 
 - `PATCH /api/v1/admin/properties/:id/status`
 - `GET /api/v1/admin/users`
 - `GET /api/v1/admin/enquiries`
+
+

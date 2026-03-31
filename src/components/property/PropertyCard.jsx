@@ -1,68 +1,98 @@
-import React, { useState } from 'react';
-import { MapPin, ArrowUpRight, Heart, ShieldCheck } from 'lucide-react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
+import { MapPin, Heart, ShieldCheck, BedDouble, Bath, Ruler, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { formatCompactPrice } from '../../utils/formatPrice';
 import './PropertyCard.css';
 
-export default function PropertyCard({ id, image, title, location, beds, baths, sqft, price, isVerified }) {
-    const navigate = useNavigate();
-    const [isSaved, setIsSaved] = useState(false);
+const getLocation = (property) => [property.subLocality, property.locality, property.city].filter(Boolean).join(', ');
+const getFallbackImage = () => 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80';
 
-    return (
-        <div className="property-card" onClick={() => navigate(`/property/${id}`)}>
-            <div className="property-image-container">
-                <img
-                    src={image}
-                    alt={title}
-                    className="property-image"
+export default function PropertyCard({ property, isSaved = false, onToggleSave, onHover, isActive = false, variant = 'default' }) {
+  const navigate = useNavigate();
+  const images = useMemo(() => (property.photos?.length ? property.photos : [getFallbackImage()]), [property]);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveImageIndex(0);
+  }, [property._id]);
+
+  const showCarouselControls = images.length > 1;
+
+  const goPrevImage = (event) => {
+    event.stopPropagation();
+    setActiveImageIndex((current) => (current === 0 ? images.length - 1 : current - 1));
+  };
+
+  const goNextImage = (event) => {
+    event.stopPropagation();
+    setActiveImageIndex((current) => (current === images.length - 1 ? 0 : current + 1));
+  };
+
+  return (
+    <div
+      className={`property-card ${isActive ? 'property-card-active' : ''} ${variant === 'compact' ? 'property-card-compact' : ''}`}
+      onClick={() => navigate(`/property/${property._id}`)}
+      onMouseEnter={() => onHover?.(property._id)}
+      onMouseLeave={() => onHover?.('')}
+    >
+      <div className="property-image-container">
+        <img src={images[activeImageIndex]} alt={property.title} className="property-image" />
+        {showCarouselControls ? (
+          <>
+            <button type="button" className="property-carousel-btn property-carousel-btn-left" onClick={goPrevImage} aria-label="Previous image">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button type="button" className="property-carousel-btn property-carousel-btn-right" onClick={goNextImage} aria-label="Next image">
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            <div className="property-carousel-dots">
+              {images.slice(0, 6).map((image, index) => (
+                <button
+                  key={`${property._id}-${image}-${index}`}
+                  type="button"
+                  className={`property-carousel-dot ${index === activeImageIndex ? 'active' : ''}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setActiveImageIndex(index);
+                  }}
+                  aria-label={`Show image ${index + 1}`}
                 />
-                
-                {/* Badges & Actions Overlay */}
-                <div className="card-top-overlay">
-                    {isVerified && (
-                        <div className="verified-badge">
-                            <ShieldCheck className="w-3.5 h-3.5" />
-                            <span>Verified</span>
-                        </div>
-                    )}
-                    <button 
-                        className={`save-btn ${isSaved ? 'saved' : ''}`}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setIsSaved(!isSaved);
-                        }}
-                    >
-                        <Heart className={`w-4 h-4 ${isSaved ? 'fill-red-500 text-red-500' : ''}`} />
-                    </button>
-                </div>
-
-                <div className="property-overlay-icon">
-                    <ArrowUpRight className="w-4 h-4 text-gray-900" />
-                </div>
+              ))}
             </div>
-
-            <div className="property-details">
-                <div className="price-tag">
-                    <span className="price-currency">₹</span>
-                    <span className="price-value">{price}</span>
-                </div>
-
-                <h3 className="property-title">{title}</h3>
-                
-                <div className="property-location">
-                    <MapPin className="w-3.5 h-3.5" />
-                    <span>{location}</span>
-                </div>
-
-                <div className="property-features">
-                    {beds > 0 && (
-                        <>
-                            <span className="feature-item"><span className="feature-val">{beds}</span> BHK</span>
-                            <span className="feature-dot">•</span>
-                        </>
-                    )}
-                    <span className="feature-item"><span className="feature-val">{sqft}</span> sqft</span>
-                </div>
-            </div>
+          </>
+        ) : null}
+        <div className="card-top-overlay">
+          <div className="card-badges-stack">
+            {property.status === 'approved' ? <div className="verified-badge"><ShieldCheck className="w-3.5 h-3.5" /><span>Verified</span></div> : null}
+            <div className="listing-mode-badge">{property.intent === 'rent' ? 'For Rent' : 'For Sale'}</div>
+          </div>
+          {onToggleSave ? (
+            <button className={`save-btn ${isSaved ? 'saved' : ''}`} onClick={(event) => { event.stopPropagation(); onToggleSave(property._id); }}>
+              <Heart className={`w-4 h-4 ${isSaved ? 'fill-red-500 text-red-500' : ''}`} />
+            </button>
+          ) : null}
         </div>
-    );
+      </div>
+
+      <div className="property-details">
+        <div className="price-tag">
+          <span className="price-value">{formatCompactPrice(property.price)}</span>
+          <span className="property-type-badge">{property.propertyType}</span>
+        </div>
+
+        <h3 className="property-title">{property.title || `${property.propertyType} in ${property.locality}`}</h3>
+        <div className="property-location">
+          <MapPin className="w-3.5 h-3.5" />
+          <span>{getLocation(property)}</span>
+        </div>
+        <p className="property-owner-line">Seller: {property.owner?.name || property.userName || 'Owner'}</p>
+
+        <div className="property-features property-features-rich">
+          {property.bedrooms ? <span className="feature-item"><BedDouble size={15} /> <span className="feature-val">{property.bedrooms} BHK</span></span> : null}
+          {property.bathrooms ? <span className="feature-item"><Bath size={15} /> <span className="feature-val">{property.bathrooms} Bath</span></span> : null}
+          <span className="feature-item"><Ruler size={15} /> <span className="feature-val">{property.totalArea || property.plotArea || property.carpetArea || '-'} {property.areaUnit || 'sq.ft'}</span></span>
+        </div>
+      </div>
+    </div>
+  );
 }

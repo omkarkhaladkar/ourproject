@@ -1,14 +1,15 @@
-import User from '../models/User.js';
+﻿import User from '../models/User.js';
 import Property from '../models/Property.js';
 import Enquiry from '../models/Enquiry.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
 export const getDashboard = asyncHandler(async (_req, res) => {
-  const [users, properties, enquiries, propertySummary] = await Promise.all([
+  const [users, properties, enquiries, featuredHomes, propertySummary] = await Promise.all([
     User.countDocuments(),
     Property.countDocuments({ status: { $ne: 'archived' } }),
     Enquiry.countDocuments(),
+    Property.countDocuments({ featuredOnHome: true, status: 'approved' }),
     Property.aggregate([
       {
         $group: {
@@ -31,6 +32,7 @@ export const getDashboard = asyncHandler(async (_req, res) => {
         users,
         properties,
         enquiries,
+        featuredHomes,
       },
       propertiesByStatus: {
         approved: statusCounts.approved || 0,
@@ -42,14 +44,30 @@ export const getDashboard = asyncHandler(async (_req, res) => {
   });
 });
 
+
+export const getAdminPropertyById = asyncHandler(async (req, res) => {
+  const property = await Property.findById(req.params.id).populate('owner', 'name email phone role');
+
+  if (!property) {
+    throw new ApiError(404, 'Property not found');
+  }
+
+  res.json({ success: true, data: property });
+});
 export const getAdminProperties = asyncHandler(async (req, res) => {
   const filter = {};
   if (req.query.status) {
     filter.status = req.query.status;
   }
+  if (req.query.city) {
+    filter.city = new RegExp(req.query.city, 'i');
+  }
+  if (req.query.featuredOnHome === 'true') {
+    filter.featuredOnHome = true;
+  }
 
   const properties = await Property.find(filter)
-    .sort({ createdAt: -1 })
+    .sort({ featuredOnHome: -1, createdAt: -1 })
     .populate('owner', 'name email phone role');
 
   res.json({ success: true, data: properties });
@@ -57,7 +75,7 @@ export const getAdminProperties = asyncHandler(async (req, res) => {
 
 export const updatePropertyStatus = asyncHandler(async (req, res) => {
   const { status, moderationMessage = '' } = req.body;
-  if (!['approved', 'rejected', 'pending'].includes(status)) {
+  if (!['approved', 'rejected', 'pending', 'archived'].includes(status)) {
     throw new ApiError(400, 'Invalid moderation status');
   }
 
@@ -69,8 +87,11 @@ export const updatePropertyStatus = asyncHandler(async (req, res) => {
   property.status = status;
   property.moderationMessage = moderationMessage;
   property.approvedAt = status === 'approved' ? new Date() : null;
-  property.publishedAt = status === 'approved' ? new Date() : property.publishedAt;
+  property.publishedAt = status === 'approved' ? (property.publishedAt || new Date()) : property.publishedAt;
   property.rejectedAt = status === 'rejected' ? new Date() : null;
+  if (status !== 'approved') {
+    property.featuredOnHome = false;
+  }
 
   await property.save();
 
@@ -78,6 +99,43 @@ export const updatePropertyStatus = asyncHandler(async (req, res) => {
     success: true,
     message: 'Property status updated',
     data: property,
+  });
+});
+
+export const togglePropertyFeatured = asyncHandler(async (req, res) => {
+  const { featuredOnHome } = req.body;
+  const property = await Property.findById(req.params.id);
+
+  if (!property) {
+    throw new ApiError(404, 'Property not found');
+  }
+
+  if (property.status !== 'approved' && featuredOnHome) {
+    throw new ApiError(400, 'Only approved properties can be featured on the home page');
+  }
+
+  property.featuredOnHome = Boolean(featuredOnHome);
+  await property.save();
+
+  res.json({
+    success: true,
+    message: property.featuredOnHome ? 'Property added to home recommendations' : 'Property removed from home recommendations',
+    data: property,
+  });
+});
+
+export const deleteAdminProperty = asyncHandler(async (req, res) => {
+  const property = await Property.findByIdAndDelete(req.params.id);
+
+  if (!property) {
+    throw new ApiError(404, 'Property not found');
+  }
+
+  await Enquiry.deleteMany({ property: property._id });
+
+  res.json({
+    success: true,
+    message: 'Property deleted permanently',
   });
 });
 
@@ -124,3 +182,4 @@ export const updateEnquiryStatus = asyncHandler(async (req, res) => {
     data: enquiry,
   });
 });
+

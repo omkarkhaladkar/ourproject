@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+﻿import mongoose from 'mongoose';
 
 const enquirySchema = new mongoose.Schema(
   {
@@ -38,6 +38,11 @@ const enquirySchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    leadType: {
+      type: String,
+      enum: ['enquiry', 'seller_detail'],
+      default: 'enquiry',
+    },
     status: {
       type: String,
       enum: ['new', 'contacted', 'closed'],
@@ -51,7 +56,10 @@ const enquirySchema = new mongoose.Schema(
 
 enquirySchema.index({ propertyOwner: 1, createdAt: -1 });
 enquirySchema.index({ property: 1, createdAt: -1 });
+enquirySchema.index({ propertyOwner: 1, leadType: 1, createdAt: -1 });
+enquirySchema.index({ property: 1, user: 1, leadType: 1 });
 
 const Enquiry = mongoose.model('Enquiry', enquirySchema);
 
 export default Enquiry;
+

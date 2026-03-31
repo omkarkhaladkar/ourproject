@@ -1,7 +1,7 @@
-.buy-page-content {
+﻿.buy-page-content {
     display: flex;
     flex: 1;
-    min-height: 0; /* Important for flex children with overflow content */
+    min-height: 0;
     margin-top: var(--space-1);
     background-color: var(--white);
 }
