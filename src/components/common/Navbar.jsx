@@ -9,6 +9,7 @@ const navItems = [
   { label: 'Home', to: '/', icon: Home },
   { label: 'Buy', to: '/buy', icon: Building2 },
   { label: 'Rent', to: '/rent', icon: KeyRound },
+  { label: 'Projects', to: '/projects', icon: Building2 },
   { label: 'Contact Us', to: '/contact', icon: Phone },
 ];
 
@@ -67,7 +68,7 @@ export default function Navbar() {
           </div>
 
           <div className="navbar-controls">
-            <NavLink to="/post-property/form" className="btn-sell"><PlusCircle className="w-4 h-4" />Post Property</NavLink>
+            <NavLink to="/post-property" className="btn-sell"><PlusCircle className="w-4 h-4" />Add Property</NavLink>
             <button className="icon-button" onClick={() => navigate(isAuthenticated ? '/profile/saved' : '/login', isAuthenticated ? undefined : { state: authRouteState })} aria-label="Favorite properties">
               <Heart className="w-[22px] h-[22px]" />
             </button>
@@ -101,6 +102,7 @@ export default function Navbar() {
                       <NavLink to="/profile" className="dropdown-item" onClick={() => setProfileOpen(false)}><User className="w-4 h-4" />Profile</NavLink>
                       <NavLink to="/profile/saved" className="dropdown-item" onClick={() => setProfileOpen(false)}><Heart className="w-4 h-4" />Favourites</NavLink>
                       <NavLink to="/profile/properties" className="dropdown-item" onClick={() => setProfileOpen(false)}><List className="w-4 h-4" />My Properties</NavLink>
+                      <NavLink to="/post-property" className="dropdown-item" onClick={() => setProfileOpen(false)}><PlusCircle className="w-4 h-4" />Add Property</NavLink>
                       <NavLink to="/profile/dashboard" className="dropdown-item" onClick={() => setProfileOpen(false)}><BarChart3 className="w-4 h-4" />Dashboard</NavLink>
                       {user?.role === 'admin' ? <NavLink to="/admin" className="dropdown-item" onClick={() => setProfileOpen(false)}><Shield className="w-4 h-4" />Admin Dashboard</NavLink> : null}
                     </div>

@@ -1,6 +1,6 @@
-﻿import React from 'react';
+import React from 'react';
 import Map, { Marker, NavigationControl } from 'react-map-gl/mapbox';
-import { MapPin } from 'lucide-react';
+import { MapPin, MapPinned } from 'lucide-react';
 import env from '../../config/env';
 
 export default function PropertyMap({ property = {} }) {
@@ -9,7 +9,7 @@ export default function PropertyMap({ property = {} }) {
 
   return (
     <div>
-      <h2 className="pd-section-title">Location in {property.city}</h2>
+      <h2 className="pd-section-title"><MapPinned size={18} />Location in {property.city}</h2>
       <div className="pd-map-container" style={{ position: 'relative', overflow: 'hidden' }}>
         <Map
           initialViewState={{ longitude, latitude, zoom: 11.5 }}
@@ -38,4 +38,3 @@ export default function PropertyMap({ property = {} }) {
     </div>
   );
 }
-

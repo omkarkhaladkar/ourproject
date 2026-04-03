@@ -236,7 +236,7 @@
 }
 
 .btn-icon {
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     gap: 0.45rem;
@@ -315,6 +315,7 @@
     }
 
     .btn-icon {
+        display: flex;
         justify-content: center;
         min-height: 52px;
     }

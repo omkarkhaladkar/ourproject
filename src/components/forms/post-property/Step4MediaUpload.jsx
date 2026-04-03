@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { ImagePlus } from 'lucide-react';
 
 const PHOTO_CATEGORIES = ['All', 'Living Room', 'Bedroom', 'Kitchen', 'Bathroom', 'Exterior', 'Other'];
 const MAX_PHOTOS = 10;
@@ -98,7 +99,7 @@ export default function Step4MediaUpload({ formData, updateField }) {
 
     return (
         <div className="ppf-step-content" key="step4">
-            <h2 className="ppf-heading">Add photos & media to attract more buyers</h2>
+            <h2 className="ppf-heading"><span className="ppf-heading-icon"><ImagePlus size={18} /></span>Add photos & media to attract more buyers</h2>
 
             {/* ── Photo Upload Zone ── */}
             <div
@@ -279,3 +280,4 @@ export default function Step4MediaUpload({ formData, updateField }) {
         </div>
     );
 }
+

@@ -36,3 +36,21 @@
   scrollbar-width: thin;
   scrollbar-color: var(--gray-300) transparent;
 }
+
+.app-skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #eef2f7 0%, #f8fafc 50%, #eef2f7 100%);
+  background-size: 200% 100%;
+  animation: appSkeletonPulse 1.3s ease-in-out infinite;
+}
+
+@keyframes appSkeletonPulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

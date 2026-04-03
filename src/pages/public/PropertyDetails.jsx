@@ -12,6 +12,7 @@ import PropertyInfoPanel from '../../components/property/PropertyInfoPanel';
 import PropertyMap from '../../components/property/PropertyMap';
 import SimilarProperties from '../../components/property/SimilarProperties';
 import { formatCurrency } from '../../utils/formatPrice';
+import ContactCard, { resolveContact } from '../../components/common/ContactCard';
 import './PropertyDetails.css';
 
 export default function PropertyDetails() {
@@ -94,6 +95,17 @@ export default function PropertyDetails() {
   if (loading) return <Loader label="Loading property details..." />;
   if (!property) return <div style={{ padding: '2rem' }}>{message || 'Property not found'}</div>;
 
+  const visibleContact = resolveContact({
+    ...property,
+    contactPersonName: property.useOriginalSellerContact ? property.owner?.name || property.userName : property.displaySellerName,
+    phoneNumber: property.useOriginalSellerContact ? property.owner?.phone : property.displaySellerPhone,
+    email: property.useOriginalSellerContact ? property.owner?.email : property.displaySellerEmail,
+    useCustomContactDetails: property.useOriginalSellerContact === false,
+    customContactName: property.displaySellerName,
+    customContactPhone: property.displaySellerPhone,
+    customContactEmail: property.displaySellerEmail,
+  });
+
   return (
     <div className="pd-page" style={{ paddingBottom: '3rem' }}>
       <div className="pd-layout">
@@ -134,11 +146,28 @@ export default function PropertyDetails() {
                 </div>
                 <p className="pd-trust-text">Name: {sellerDetails.name || 'Owner'}</p>
                 <p className="pd-trust-text">Phone: {sellerDetails.phone || 'Not available'}</p>
+                <p className="pd-trust-text">Email: {sellerDetails.email || 'Not available'}</p>
               </div>
             ) : null}
           </div>
 
-          <div className="pd-contact-card">
+          <ContactCard
+            item={{
+              ...property,
+              contactPersonName: visibleContact.name,
+              phoneNumber: visibleContact.phone,
+              email: visibleContact.email,
+              useCustomContactDetails: !property.useOriginalSellerContact,
+              customContactName: property.displaySellerName,
+              customContactPhone: property.displaySellerPhone,
+              customContactEmail: property.displaySellerEmail,
+            }}
+            buttonLabel="Enquire Now"
+            onAction={() => document.getElementById('property-enquiry-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+            helperText="Visible contact reflects your original or custom seller settings."
+          />
+
+          <div className="pd-contact-card" id="property-enquiry-form">
             <h3>Send an enquiry</h3>
             <form onSubmit={submitEnquiry} style={{ display: 'grid', gap: 10 }}>
               <input value={enquiry.name} onChange={(e) => setEnquiry({ ...enquiry, name: e.target.value })} placeholder="Your name" className="styled-input" />

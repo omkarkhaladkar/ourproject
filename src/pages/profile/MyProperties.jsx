@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapPin, Pencil, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import userService from '../../services/userService';
@@ -42,7 +42,7 @@ export default function MyProperties() {
           <h1 className="page-title">My Properties</h1>
           <p className="page-subtitle">Create, edit, and archive your listings.</p>
         </div>
-        <Link to="/post-property/form" className="my-properties-cta">Post New Property</Link>
+        <Link to="/post-property" className="my-properties-cta">Post New Property</Link>
       </div>
 
       {message ? <p>{message}</p> : null}
@@ -62,7 +62,7 @@ export default function MyProperties() {
                 </div>
                 <div className="property-location"><MapPin className="w-4 h-4" /><span>{[property.locality, property.city].filter(Boolean).join(', ')}</span></div>
                 <div className="property-actions">
-                  <button className="action-btn edit-btn" onClick={() => navigate(`/post-property/form?edit=${property._id}`)}><Pencil className="w-4 h-4" /> Edit</button>
+                  <button className="action-btn edit-btn" onClick={() => navigate(`/post-property?edit=${property._id}`)}><Pencil className="w-4 h-4" /> Edit</button>
                   <button className="action-btn delete-btn" onClick={() => archiveProperty(property._id)}><Trash2 className="w-4 h-4" /> Archive</button>
                 </div>
               </div>
@@ -75,4 +75,5 @@ export default function MyProperties() {
     </div>
   );
 }
+
 

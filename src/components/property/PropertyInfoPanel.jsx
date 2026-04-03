@@ -1,4 +1,5 @@
-﻿import React from 'react';
+import React from 'react';
+import { ClipboardList } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatPrice';
 
 const Row = ({ label, value }) => {
@@ -16,7 +17,7 @@ const Row = ({ label, value }) => {
 export default function PropertyInfoPanel({ property = {} }) {
   return (
     <div className="pd-info-panel">
-      <h2 className="pd-section-title">Property Details</h2>
+      <h2 className="pd-section-title"><ClipboardList size={18} />Property Details</h2>
       <div className="pd-stat-grid-2">
         <Row label="Intent" value={property.intent} />
         <Row label="Category" value={property.category} />
@@ -38,4 +39,3 @@ export default function PropertyInfoPanel({ property = {} }) {
     </div>
   );
 }
-

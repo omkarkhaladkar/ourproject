@@ -289,7 +289,7 @@ export const unlockSellerDetails = asyncHandler(async (req, res) => {
     data: {
       name: property.useOriginalSellerContact ? (property.owner?.name || property.userName || 'Owner') : (property.displaySellerName || property.owner?.name || property.userName || 'Owner'),
       phone: property.useOriginalSellerContact ? (property.owner?.phone || '') : (property.displaySellerPhone || property.owner?.phone || ''),
-      email: property.owner?.email || '',
+      email: property.useOriginalSellerContact ? (property.owner?.email || '') : (property.displaySellerEmail || property.owner?.email || ''),
     },
   });
 });

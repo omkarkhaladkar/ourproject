@@ -22,6 +22,11 @@ const propertySchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    displaySellerEmail: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     useOriginalSellerContact: {
       type: Boolean,
       default: true,

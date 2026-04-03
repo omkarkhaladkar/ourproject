@@ -65,7 +65,7 @@ export default function MyProfile() {
         </div>
 
         <div className="profile-header-actions">
-          <Link to="/post-property/form" className="profile-cta profile-cta-secondary">Post New Property</Link>
+          <Link to="/post-property" className="profile-cta profile-cta-secondary">Post New Property</Link>
           <button className={`profile-cta ${isEditing ? 'profile-cta-primary' : 'profile-cta-secondary'}`} onClick={isEditing ? save : () => setIsEditing(true)}>
             {loading ? 'Saving...' : isEditing ? 'Save Changes' : 'Edit Profile'}
           </button>
@@ -86,3 +86,4 @@ export default function MyProfile() {
     </div>
   );
 }
+

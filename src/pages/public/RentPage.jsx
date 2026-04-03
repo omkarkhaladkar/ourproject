@@ -1,20 +1,30 @@
-﻿import React from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import SearchBar from '../../components/search/SearchBar';
 import ListingsPanel from '../../components/property/ListingsPanel';
 import MapPanel from '../../components/search/MapPanel';
 import useProperties from '../../hooks/useProperties';
 import useAuth from '../../hooks/useAuth';
-import { buildPropertyApiParams, parseSearchParams } from '../../utils/queryParams';
+import { buildPropertyApiParams, buildSearchQueryString, parseSearchParams } from '../../utils/queryParams';
 import './BuyPage.css';
 
 export default function RentPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [hoveredPropertyId, setHoveredPropertyId] = React.useState('');
   const routeFilters = React.useMemo(() => parseSearchParams(searchParams), [searchParams]);
   const apiParams = React.useMemo(() => buildPropertyApiParams({ ...routeFilters, intent: 'rent', limit: 24 }), [routeFilters]);
   const { properties, loading } = useProperties(apiParams);
   const { savedPropertyIds, toggleSavedProperty, isAuthenticated } = useAuth();
+
+  const handleSortChange = React.useCallback((sort) => {
+    const queryString = buildSearchQueryString({
+      ...routeFilters,
+      intent: 'rent',
+      sort,
+    });
+    navigate(`/rent?${queryString}`);
+  }, [navigate, routeFilters]);
 
   return (
     <>
@@ -30,6 +40,8 @@ export default function RentPage() {
             onToggleSave={isAuthenticated ? toggleSavedProperty : undefined}
             onPropertyHover={setHoveredPropertyId}
             activePropertyId={hoveredPropertyId}
+            sortValue={routeFilters.sort || 'newest'}
+            onSortChange={handleSortChange}
           />
         </div>
         <div className="map-wrapper">

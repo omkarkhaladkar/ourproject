@@ -1,8 +1,16 @@
-﻿import User from '../models/User.js';
+import User from '../models/User.js';
 import Property from '../models/Property.js';
 import Enquiry from '../models/Enquiry.js';
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
+export {
+  listAdminBlogs,
+  getAdminBlogById,
+  createBlog,
+  updateBlog,
+  deleteBlog,
+} from './blog.controller.js';
+
 
 export const getDashboard = asyncHandler(async (_req, res) => {
   const [users, properties, enquiries, featuredHomes, propertySummary] = await Promise.all([
@@ -182,4 +190,5 @@ export const updateEnquiryStatus = asyncHandler(async (req, res) => {
     data: enquiry,
   });
 });
+
 

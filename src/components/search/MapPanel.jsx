@@ -13,6 +13,7 @@ const baseLatitude = 18.28;
 export default function MapPanel({ properties = [], activePropertyId = '', intent = 'sell' }) {
   const navigate = useNavigate();
   const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
   const items = useMemo(() => properties.slice(0, 12).map((property, index) => ({
     ...property,
     longitude: baseLongitude + (index % 4) * 0.02,
@@ -42,6 +43,53 @@ export default function MapPanel({ properties = [], activePropertyId = '', inten
   }, [activePropertyId]);
 
   useEffect(() => {
+    if (!selectedProperty || !mapRef.current) return;
+
+    const map = mapRef.current.getMap();
+    const container = map.getContainer();
+    const point = map.project([selectedProperty.longitude, selectedProperty.latitude]);
+
+    const popupWidth = 300;
+    const popupHeight = 290;
+    const sidePadding = 20;
+    const bottomGap = 28;
+    const topReserved = (isFullscreen ? 110 : 16) + 16;
+
+    const left = point.x - (popupWidth / 2);
+    const right = point.x + (popupWidth / 2);
+    const top = point.y - popupHeight - bottomGap;
+    const bottom = point.y - bottomGap;
+
+    let shiftX = 0;
+    let shiftY = 0;
+
+    if (left < sidePadding) {
+      shiftX = left - sidePadding;
+    } else if (right > container.clientWidth - sidePadding) {
+      shiftX = right - (container.clientWidth - sidePadding);
+    }
+
+    if (top < topReserved) {
+      shiftY = top - topReserved;
+    } else if (bottom > container.clientHeight - sidePadding) {
+      shiftY = bottom - (container.clientHeight - sidePadding);
+    }
+
+    if (shiftX !== 0 || shiftY !== 0) {
+      const centerPoint = map.project(map.getCenter());
+      const nextCenter = map.unproject([
+        centerPoint.x + shiftX,
+        centerPoint.y + shiftY,
+      ]);
+
+      map.easeTo({
+        center: nextCenter,
+        duration: 350,
+      });
+    }
+  }, [isFullscreen, selectedProperty]);
+
+  useEffect(() => {
     const handleFullscreenChange = () => {
       const fullscreenElement = document.fullscreenElement;
       const container = mapContainerRef.current;
@@ -60,7 +108,9 @@ export default function MapPanel({ properties = [], activePropertyId = '', inten
         </div>
       ) : null}
       <Map
+        ref={mapRef}
         {...viewState}
+        onMoveStart={() => setSelectedPropertyId('')}
         onMove={(event) => setViewState(event.viewState)}
         onClick={() => setSelectedPropertyId('')}
         mapStyle="mapbox://styles/mapbox/streets-v12"

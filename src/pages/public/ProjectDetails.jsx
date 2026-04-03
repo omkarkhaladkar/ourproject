@@ -1,0 +1,287 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, Bath, Building2, CalendarDays, CarFront, Dumbbell, FileText, Mail, MapPin, MapPinned, Phone, ShieldCheck, Trees, Waves, Users, Building, Lock, Blocks, Sparkles } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import ContactCard from '../../components/common/ContactCard';
+import Loader from '../../components/common/Loader';
+import ProjectCard from '../../components/project/ProjectCard';
+import projectService from '../../services/projectService';
+import { getProjectTypeProfile } from '../../utils/projectTypeConfig';
+import { formatCompactPrice } from '../../utils/formatPrice';
+import './PropertyDetails.css';
+
+const AMENITY_ICONS = {
+  Parking: CarFront,
+  Gym: Dumbbell,
+  'Swimming Pool': Waves,
+  Security: Lock,
+  Garden: Trees,
+  Lift: Building2,
+  Clubhouse: Building,
+  'Children Play Area': Users,
+  'Power Backup': ShieldCheck,
+};
+
+const AMENITY_COLOR_CLASS = {
+  Parking: 'pd-amenity--amber',
+  Gym: 'pd-amenity--rose',
+  'Swimming Pool': 'pd-amenity--cyan',
+  Security: 'pd-amenity--emerald',
+  Garden: 'pd-amenity--green',
+  Lift: 'pd-amenity--indigo',
+  Clubhouse: 'pd-amenity--violet',
+  'Children Play Area': 'pd-amenity--orange',
+  'Power Backup': 'pd-amenity--slate',
+};
+
+const INFO_COLOR_CLASS = [
+  'pd-stat--violet',
+  'pd-stat--cyan',
+  'pd-stat--amber',
+  'pd-stat--emerald',
+  'pd-stat--rose',
+  'pd-stat--slate',
+];
+
+function Gallery({ images = [], status }) {
+  const items = images.length ? images : ['https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&w=1200&q=80'];
+  const [activeIndex, setActiveIndex] = useState(0);
+  const showGalleryControls = items.length > 1;
+
+  return (
+    <div className="pd-gallery">
+      <div className="pd-gallery-hero">
+        <img src={items[activeIndex]} alt="Project" />
+        <div className="pd-gallery-overlay" />
+        <div className="pd-gallery-top-right">
+          <span className="pd-badge pd-badge--sale">{status}</span>
+        </div>
+        <div className="pd-gallery-counter">{activeIndex + 1} / {items.length}</div>
+        {showGalleryControls ? (
+          <>
+            <button
+              type="button"
+              onClick={() => setActiveIndex((current) => (current - 1 + items.length) % items.length)}
+              className="pd-gallery-nav pd-gallery-nav--prev"
+              aria-label="View previous project image"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveIndex((current) => (current + 1) % items.length)}
+              className="pd-gallery-nav pd-gallery-nav--next"
+              aria-label="View next project image"
+            >
+              <ArrowLeft size={18} style={{ transform: 'rotate(180deg)' }} />
+            </button>
+          </>
+        ) : null}
+      </div>
+      <div className="pd-gallery-thumbs">
+        {items.map((image, index) => (
+          <button key={`${image}-${index}`} type="button" onClick={() => setActiveIndex(index)} className={`pd-gallery-thumb ${index === activeIndex ? 'pd-gallery-thumb--active' : ''}`}>
+            <img src={image} alt={`Project view ${index + 1}`} />
+          </button>
+        ))}
+      </div>
+      {showGalleryControls ? (
+        <div className="pd-gallery-dots" aria-label="Project image navigation">
+          {items.map((image, index) => (
+            <button
+              key={`dot-${image}-${index}`}
+              type="button"
+              onClick={() => setActiveIndex(index)}
+              className={`pd-gallery-dot ${index === activeIndex ? 'pd-gallery-dot--active' : ''}`}
+              aria-label={`Go to project image ${index + 1}`}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function InfoGrid({ project }) {
+  const profile = getProjectTypeProfile(project.projectType);
+  const cards = [
+    { icon: Blocks, label: 'Configurations', value: project.configurationTypes?.concat(project.extraConfigurations || []).filter(Boolean).join(', ') || 'NA' },
+    { icon: Bath, label: profile.labels.areaRange, value: project.areaRange || 'NA' },
+    { icon: Building2, label: profile.labels.summaryLabel, value: profile.labels.summaryValue(project) },
+    { icon: CalendarDays, label: profile.labels.possessionDate, value: project.possessionDate || 'NA' },
+    { icon: Building, label: profile.labels.developer, value: project.developerName || 'NA' },
+    { icon: ShieldCheck, label: profile.labels.rera, value: project.reraNumber || 'NA' },
+  ];
+
+  return (
+    <div className="pd-stats-grid">
+      {cards.map(({ icon: Icon, label, value }, index) => (
+        <div key={label} className={`pd-stat ${INFO_COLOR_CLASS[index % INFO_COLOR_CLASS.length]}`}>
+          <div className="pd-stat-icon"><Icon size={18} strokeWidth={1.8} /></div>
+          <span className="pd-stat-value">{value}</span>
+          <span className="pd-stat-label">{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Amenities({ amenities = [] }) {
+  return (
+    <div>
+      <h2 className="pd-section-title"><Sparkles size={18} />Amenities</h2>
+      <div className="pd-amenities-grid">
+        {amenities.map((amenity) => {
+          const Icon = AMENITY_ICONS[amenity] || ShieldCheck;
+          return (
+            <div key={amenity} className={`pd-amenity ${AMENITY_COLOR_CLASS[amenity] || 'pd-amenity--indigo'}`}>
+              <Icon size={18} />
+              <span className="pd-amenity-label">{amenity}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function Description({ project }) {
+  return (
+    <div>
+      <h2 className="pd-section-title"><FileText size={18} />Project Description</h2>
+      <p className="pd-description-text" style={{ marginBottom: 14 }}>{project.shortDescription}</p>
+      <p className="pd-description-text">{project.detailedDescription}</p>
+    </div>
+  );
+}
+
+function ProjectMap({ project }) {
+  const src = project.mapLink?.startsWith('http')
+    ? project.mapLink
+    : `https://maps.google.com/maps?q=${encodeURIComponent(project.mapLink || `${project.area}, ${project.city}`)}&z=14&output=embed`;
+
+  return (
+    <div>
+      <h2 className="pd-section-title"><MapPinned size={18} />Map & Location</h2>
+      <div className="pd-map-container">
+        <iframe title="Project map" src={src} loading="lazy" referrerPolicy="no-referrer-when-downgrade" style={{ width: '100%', height: '100%', border: 0 }} />
+      </div>
+      <div className="pd-neighborhood-tags">
+        {[project.area, project.city, project.address].filter(Boolean).map((item) => <span key={item} className="pd-hood-tag">{item}</span>)}
+      </div>
+    </div>
+  );
+}
+
+export default function ProjectDetails() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [project, setProject] = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      setLoading(true);
+      try {
+        const [projectResponse, listResponse] = await Promise.all([projectService.getById(id), projectService.getAll()]);
+        if (!active) return;
+        setProject(projectResponse.data.data);
+        setProjects(listResponse.data.data.items || []);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  const similar = useMemo(() => projects.filter((item) => item._id !== project?._id).slice(0, 3), [projects, project]);
+
+  if (loading) return <Loader label="Loading project details..." />;
+  if (!project) return <div style={{ padding: '2rem' }}>Project not found.</div>;
+
+  const starting = (project.startingPrice || 0) * (project.priceUnit === 'Crore' ? 10000000 : 100000);
+  const ending = (project.endingPrice || 0) * (project.priceUnit === 'Crore' ? 10000000 : 100000);
+  const profile = getProjectTypeProfile(project.projectType);
+
+  return (
+    <div className="pd-page" style={{ paddingBottom: '3rem' }}>
+      <div className="pd-layout">
+        <div className="pd-main">
+          <button onClick={() => navigate(-1)} className="pd-back-btn"><ArrowLeft size={16} /> Back to projects</button>
+          <Gallery images={project.projectImages} status={project.projectStatus} />
+          <div className="pd-card">
+            <div className="pd-title-row">
+              <div className="pd-title">
+                <h1>{project.projectName}</h1>
+                <div className="pd-title-meta">
+                  <div className="pd-location"><MapPin size={15} /><span>{[project.area, project.city].filter(Boolean).join(', ')}</span></div>
+                  <span className="pd-tag">{project.projectStatus}</span>
+                </div>
+              </div>
+            </div>
+            <div className="pd-tags">
+              {(project.tags || []).map((tag) => <span key={tag} className="pd-tag">{tag}</span>)}
+            </div>
+          </div>
+          <div className="pd-card"><InfoGrid project={project} /></div>
+          <div className="pd-card"><Amenities amenities={project.amenities || []} /></div>
+          <div className="pd-card"><Description project={project} /></div>
+          <div className="pd-card"><ProjectMap project={project} /></div>
+        </div>
+
+        <div className="pd-sidebar">
+          <div className="pd-price-card">
+            <div className="pd-price-header">
+              <div>
+                <div className="pd-price-label">Price Range</div>
+                <div className="pd-price-amount">{formatCompactPrice(starting)} - {formatCompactPrice(ending)}</div>
+                <div className="pd-price-per-sqft">{project.projectType} • {project.areaRange}</div>
+              </div>
+            </div>
+            <div className="pd-trust">
+              <div className="pd-trust-badge">
+                <div className="pd-trust-icon"><Building2 size={16} /></div>
+                <span className="pd-trust-label">Developer</span>
+              </div>
+              <p className="pd-trust-text">{project.developerName}</p>
+              <p className="pd-trust-text">{profile.labels.rera}: {project.reraNumber || 'Pending'}</p>
+            </div>
+          </div>
+
+          <ContactCard
+            item={project}
+            helperText="Contact info reflects the original project contact or your custom contact settings."
+            onAction={() => {
+              if (project.phoneNumber) window.location.href = `tel:${project.useCustomContactDetails ? project.customContactPhone || project.phoneNumber : project.phoneNumber}`;
+            }}
+          />
+
+          <div className="pd-contact-card">
+            <h3>Quick Contact</h3>
+            <p>Reach out directly for brochure, site visit, and latest availability.</p>
+            <div className="pd-chip-list">
+              <span className="pd-info-chip"><Phone size={14} /> {(project.useCustomContactDetails ? project.customContactPhone : project.phoneNumber) || '-'}</span>
+              <span className="pd-info-chip"><Mail size={14} /> {(project.useCustomContactDetails ? project.customContactEmail : project.email) || '-'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {similar.length ? (
+        <section className="pd-similar-section">
+          <div className="pd-similar-header">
+            <h2 className="pd-similar-title">Similar Projects</h2>
+          </div>
+          <div className="pd-similar-grid">
+            {similar.map((item) => <ProjectCard key={item._id} project={item} />)}
+          </div>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+

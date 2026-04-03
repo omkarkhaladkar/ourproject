@@ -15,6 +15,7 @@ const initialState = {
   userName: 'User',
   displaySellerName: '',
   displaySellerPhone: '',
+  displaySellerEmail: '',
   useOriginalSellerContact: true,
   intent: 'sell', category: 'residential', propertyType: '', city: '', locality: '', subLocality: '', landmark: '', flatNo: '', totalFloors: '', floorNo: '',
   bedrooms: '', bathrooms: '', balconies: '', totalArea: '', areaUnit: 'sq.ft', carpetArea: '', furnishing: '', availability: '', possessionMonth: '', possessionYear: '', propertyAge: '', ownership: '', price: '', priceNegotiable: false,
@@ -48,6 +49,7 @@ const validateStep = (step, data) => {
     if (!data.useOriginalSellerContact) {
       if (!data.displaySellerName?.trim()) errors.displaySellerName = 'Seller name is required';
       if (!data.displaySellerPhone?.trim()) errors.displaySellerPhone = 'Seller phone is required';
+      if (!data.displaySellerEmail?.trim()) errors.displaySellerEmail = 'Seller email is required';
     }
   }
   if (step === 2) {

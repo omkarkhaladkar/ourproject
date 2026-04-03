@@ -1,4 +1,4 @@
-﻿.property-card {
+.property-card {
     background-color: var(--white);
     border-radius: var(--radius-xl);
     overflow: hidden;
@@ -9,13 +9,14 @@
     border: 1px solid var(--gray-200);
     position: relative;
     min-height: 400px;
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.08), 0 3px 10px rgba(0, 0, 0, 0.04);
 }
 
 .property-card:hover,
 .property-card-active {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl);
-    border-color: var(--indigo-300);
+    transform: translateY(-6px);
+    box-shadow: 0 26px 52px rgba(0, 0, 0, 0.14), 0 10px 18px rgba(0, 0, 0, 0.08);
+    border-color: var(--gray-400);
 }
 
 .property-image-container {
@@ -167,6 +168,7 @@
     flex-direction: column;
     flex: 1;
     gap: 0.7rem;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, #f7f7f7 100%);
 }
 
 .price-tag {
@@ -291,3 +293,4 @@
         grid-template-columns: 1fr;
     }
 }
+

@@ -1,4 +1,5 @@
 import React from 'react';
+import { HousePlus } from 'lucide-react';
 
 /* ── helpers ──────────────────────────────────────────── */
 function CountSelector({ label, value, options, onChange }) {
@@ -96,7 +97,7 @@ export default function Step3PropertyProfile({ formData, updateField, errors }) 
 
     return (
         <div className="ppf-step-content" key="step3">
-            <h2 className="ppf-heading">Tell us about your property</h2>
+            <h2 className="ppf-heading"><span className="ppf-heading-icon"><HousePlus size={18} /></span>Tell us about your property</h2>
 
             {/* ── Flat / Apartment / Builder Floor / House ── */}
             {(typeGroup === 'flat' || typeGroup === 'house') && (
@@ -591,3 +592,4 @@ export default function Step3PropertyProfile({ formData, updateField, errors }) 
         </div>
     );
 }
+

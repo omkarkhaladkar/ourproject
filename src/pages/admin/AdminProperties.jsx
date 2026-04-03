@@ -5,6 +5,7 @@ import adminService from '../../services/adminService';
 import AdminHeader from '../../components/admin/AdminHeader';
 import DataTable from '../../components/admin/DataTable';
 import Loader from '../../components/common/Loader';
+import ToggleSwitch from '../../components/common/ToggleSwitch';
 import { formatCompactPrice } from '../../utils/formatPrice';
 
 export default function AdminProperties() {
@@ -108,13 +109,25 @@ export default function AdminProperties() {
                 <div className="admin-cell-stack">
                   <div>{row.owner?.name || row.userName}</div>
                   <div className="admin-cell-subtitle">Original: {row.owner?.phone || row.owner?.email || '-'}</div>
-                  <div className="admin-cell-subtitle">Display: {row.useOriginalSellerContact ? 'Original seller contact' : `${row.displaySellerName || '-'} • ${row.displaySellerPhone || '-'}`}</div>
+                  <div className="admin-cell-subtitle">Display: {row.useOriginalSellerContact ? 'Original seller contact' : `${row.displaySellerName || '-'} • ${row.displaySellerPhone || '-'} • ${row.displaySellerEmail || '-'}`}</div>
                 </div>
               ),
             },
             { key: 'status', label: 'Status', render: (row) => <span className={`admin-table-badge ${row.status === 'approved' ? 'success' : row.status === 'archived' ? 'muted' : 'warning'}`}>{row.status}</span> },
             { key: 'price', label: 'Price', render: (row) => formatCompactPrice(row.price) },
             { key: 'featuredOnHome', label: 'Home', render: (row) => <span className={`admin-table-badge ${row.featuredOnHome ? 'success' : 'muted'}`}>{row.featuredOnHome ? 'Recommended' : 'Normal'}</span> },
+            {
+              key: 'visible',
+              label: 'Visible',
+              render: (row) => (
+                <ToggleSwitch
+                  checked={row.status === 'approved'}
+                  onChange={(value) => updateStatus(row._id, value ? 'approved' : 'archived')}
+                  label="Toggle property visibility"
+                  disabled={busyId === `${row._id}:approved` || busyId === `${row._id}:archived`}
+                />
+              ),
+            },
             {
               key: 'actions',
               label: 'Actions',
@@ -131,8 +144,8 @@ export default function AdminProperties() {
                     {busyId === `${row._id}:featured` ? <span className="admin-inline-spinner" aria-hidden="true"></span> : <Star className="w-4 h-4" />}
                     {row.featuredOnHome ? 'Unfeature' : 'Feature'}
                   </button>
-                  <button type="button" className="admin-primary-btn admin-primary-btn-inline" disabled={busyId === `${row._id}:approved`} onClick={() => updateStatus(row._id, 'approved')}><Power className="w-4 h-4" /> Active</button>
-                  <button type="button" className="admin-danger-btn" disabled={busyId === `${row._id}:archived`} onClick={() => updateStatus(row._id, 'archived')}>Deactivate</button>
+                  <button type="button" className="admin-primary-btn admin-primary-btn-inline" disabled={busyId === `${row._id}:approved`} onClick={() => updateStatus(row._id, 'approved')}><Power className="w-4 h-4" /> Show</button>
+                  <button type="button" className="admin-danger-btn" disabled={busyId === `${row._id}:archived`} onClick={() => updateStatus(row._id, 'archived')}>Hide</button>
                   <button type="button" className="admin-danger-btn" disabled={busyId === `${row._id}:delete`} onClick={() => deleteProperty(row._id)}><Trash2 className="w-4 h-4" /> Delete</button>
                 </div>
               ),

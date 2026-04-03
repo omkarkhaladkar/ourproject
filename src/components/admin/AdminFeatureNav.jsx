@@ -4,6 +4,10 @@ import { NavLink } from 'react-router-dom';
 
 const items = [
   { label: 'Dashboard', to: '/admin' },
+  { label: 'Add Property', to: '/admin/properties/form' },
+  { label: 'Projects', to: '/admin/projects' },
+  { label: 'Add Project', to: '/admin/add-project' },
+  { label: 'Blogs', to: '/admin/blogs' },
   { label: 'Users', to: '/admin/users' },
   { label: 'Properties', to: '/admin/properties' },
   { label: 'Approval', to: '/admin/properties/pending' },

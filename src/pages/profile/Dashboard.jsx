@@ -1,4 +1,4 @@
-ï»¿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { BarChart3, Bookmark, Building2, Clock3, MessageSquareMore, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
@@ -95,7 +95,7 @@ export default function Dashboard() {
         </div>
         <div className="dashboard-hero-actions">
           <Link to="/profile" className="profile-action-btn profile-action-btn-secondary">Edit Profile</Link>
-          <Link to="/post-property/form" className="profile-action-btn profile-action-btn-primary">Post New Property</Link>
+          <Link to="/post-property" className="profile-action-btn profile-action-btn-primary">Post New Property</Link>
         </div>
       </div>
 
@@ -128,13 +128,13 @@ export default function Dashboard() {
                 <article key={lead._id} className="dashboard-lead-card">
                   <div className="dashboard-lead-main">
                     <h3>{lead.property?.title || 'Property lead'}</h3>
-                    <p>{lead.name} Â· {lead.email}</p>
+                    <p>{lead.name} · {lead.email}</p>
                   </div>
                   <div className="dashboard-lead-meta">
                     <span className={`dashboard-status-badge ${lead.status}`}>{lead.status}</span>
                     <span>{formatDate(lead.createdAt)}</span>
                   </div>
-                  <p className="dashboard-lead-message">Phone: {lead.phone || 'Not shared'} Â· Requested seller contact details.</p>
+                  <p className="dashboard-lead-message">Phone: {lead.phone || 'Not shared'} · Requested seller contact details.</p>
                 </article>
               ))}
             </div>
@@ -175,4 +175,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
 

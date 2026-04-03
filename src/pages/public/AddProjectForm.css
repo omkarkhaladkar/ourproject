@@ -1,0 +1,181 @@
+.apf-page {
+  scroll-behavior: smooth;
+}
+
+.apf-form-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.apf-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  align-items: flex-start;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.apf-hero-copy {
+  margin: 0;
+  max-width: 680px;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--gray-500);
+}
+
+.apf-slug-box {
+  min-width: 240px;
+  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(180deg, #ffffff 0%, #f7f9ff 100%);
+  border: 1px solid rgba(99, 102, 241, 0.14);
+  box-shadow: var(--shadow-sm);
+}
+
+.apf-slug-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--gray-500);
+}
+
+.apf-slug-value {
+  display: block;
+  font-size: 0.88rem;
+  word-break: break-word;
+  color: var(--indigo-700);
+}
+
+.apf-section-card {
+  padding: var(--space-6);
+  border-radius: var(--radius-2xl);
+  border: 1px solid rgba(229, 231, 235, 0.9);
+  background: linear-gradient(180deg, #ffffff 0%, #fcfcff 100%);
+  box-shadow: var(--shadow-sm);
+  animation: ppfFadeIn 0.35s ease-out;
+}
+
+.apf-section-card:hover {
+  box-shadow: 0 14px 30px rgba(79, 70, 229, 0.08);
+}
+
+.apf-section-head {
+  margin-bottom: var(--space-5);
+}
+
+.apf-section-title {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.apf-section-description {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--gray-500);
+}
+
+.apf-field-hint {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--gray-500);
+}
+
+.apf-label-icon {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-right: 6px;
+  color: var(--indigo-500);
+}
+
+.apf-dynamic-grid {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.apf-dynamic-config {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.apf-mini-btn {
+  flex-shrink: 0;
+  padding-inline: 18px;
+}
+
+.apf-inline-btn {
+  width: fit-content;
+  margin-bottom: var(--space-5);
+}
+
+.apf-hidden-input {
+  display: none;
+}
+
+.apf-upload-zone {
+  width: 100%;
+}
+
+.apf-always-visible {
+  opacity: 1;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: var(--space-3);
+}
+
+.apf-file-badge {
+  display: inline-flex;
+  margin-top: 10px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background: var(--indigo-50);
+  color: var(--indigo-700);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.apf-status-message {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(180deg, #eff6ff 0%, #f8fbff 100%);
+  color: var(--indigo-700);
+  font-size: 0.9rem;
+  border: 1px solid rgba(99, 102, 241, 0.12);
+}
+
+@media (max-width: 900px) {
+  .apf-hero {
+    flex-direction: column;
+  }
+
+  .apf-slug-box {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .apf-section-card {
+    padding: var(--space-4);
+  }
+
+  .apf-dynamic-config {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .apf-mini-btn,
+  .apf-inline-btn {
+    width: 100%;
+  }
+}

@@ -33,7 +33,6 @@ export default function PropertyCard({ property, isSaved = false, onToggleSave, 
       className={`property-card ${isActive ? 'property-card-active' : ''} ${variant === 'compact' ? 'property-card-compact' : ''}`}
       onClick={() => navigate(`/property/${property._id}`)}
       onMouseEnter={() => onHover?.(property._id)}
-      onMouseLeave={() => onHover?.('')}
     >
       <div className="property-image-container">
         <img src={images[activeImageIndex]} alt={property.title} className="property-image" />
@@ -85,7 +84,7 @@ export default function PropertyCard({ property, isSaved = false, onToggleSave, 
           <MapPin className="w-3.5 h-3.5" />
           <span>{getLocation(property)}</span>
         </div>
-        <p className="property-owner-line">Seller: {property.owner?.name || property.userName || 'Owner'}</p>
+        <p className="property-owner-line">Seller: {property.useOriginalSellerContact === false ? (property.displaySellerName || property.owner?.name || property.userName || 'Owner') : (property.owner?.name || property.userName || 'Owner')}</p>
 
         <div className="property-features property-features-rich">
           {property.bedrooms ? <span className="feature-item"><BedDouble size={15} /> <span className="feature-val">{property.bedrooms} BHK</span></span> : null}

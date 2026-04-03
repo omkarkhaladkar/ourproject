@@ -1,13 +1,17 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Bookmark, Building2, MessageSquareMore, PlusCircle } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useProperties from '../../hooks/useProperties';
+import useProjects from '../../hooks/useProjects';
 import useAuth from '../../hooks/useAuth';
 import PropertyCard from '../../components/property/PropertyCard';
+import ProjectCard from '../../components/project/ProjectCard';
 import Loader from '../../components/common/Loader';
 import EmptyState from '../../components/common/EmptyState';
+import blogService from '../../services/blogService';
 import { buildSearchQueryString } from '../../utils/queryParams';
 import userService from '../../services/userService';
+import AppInstallBanner from '../../components/home/AppInstallBanner';
 import './Home.css';
 
 const HeroBanner = () => (
@@ -39,6 +43,11 @@ const SearchWidget = () => {
   const runSearch = () => {
     if (activeTab === 'Post Property') {
       navigate('/post-property');
+      return;
+    }
+
+    if (activeTab === 'Projects' || activeTab === 'New Launch') {
+      navigate('/projects');
       return;
     }
 
@@ -194,7 +203,7 @@ function PropertySection() {
             <div className="activity-actions">
               <Link to="/profile/dashboard" className="activity-btn">Open Dashboard</Link>
               <Link to="/profile/saved" className="activity-btn activity-btn-secondary">View Saved</Link>
-              <Link to="/post-property/form" className="activity-btn activity-btn-ghost"><PlusCircle className="w-4 h-4" /> Post Property</Link>
+              <Link to="/post-property" className="activity-btn activity-btn-ghost"><PlusCircle className="w-4 h-4" /> Post Property</Link>
             </div>
           </div>
         )}
@@ -246,28 +255,21 @@ const PopularLocalities = () => {
 };
 
 const NewLaunchProjects = () => {
-  const projs = [1, 2, 3];
+  const { projects, loading } = useProjects({ featuredOnHome: true });
+  const featured = projects.slice(0, 3);
   return (
     <section className="section-container" style={{ paddingTop: '3rem' }}>
       <div className="section-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 className="section-title">New Launch Projects</h3>
-        <Link to="/buy" style={{ color: 'var(--indigo-600)', fontWeight: 600, textDecoration: 'none' }}>View All &rarr;</Link>
+        <div>
+          <h3 className="section-title">Featured Projects</h3>
+          <p className="section-subtitle">Same premium card feel, now for new launches and communities.</p>
+        </div>
+        <Link to="/projects" style={{ color: 'var(--indigo-600)', fontWeight: 600, textDecoration: 'none' }}>View All Projects &rarr;</Link>
       </div>
       <div className="project-grid">
-        {projs.map((proj) => (
-          <div className="project-card" key={proj}>
-            <div className="project-img-box">
-              <span className="project-badge">NEW LAUNCH</span>
-            </div>
-            <div className="project-info">
-              <div className="project-name">Purandar Hills Residency</div>
-              <div className="project-builder">by Purandar Developers</div>
-              <div className="project-loc">&#128205; Saswad, Pune</div>
-              <div className="project-price">INR 42 Lac - 1.45 Cr</div>
-              <div style={{ color: 'var(--gray-500)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>2, 3, 4 BHK</div>
-              <button className="project-btn">Explore</button>
-            </div>
-          </div>
+        {loading ? <Loader label="Loading featured projects..." /> : null}
+        {!loading && featured.map((project) => (
+          <ProjectCard key={project._id} project={project} />
         ))}
       </div>
     </section>
@@ -275,44 +277,47 @@ const NewLaunchProjects = () => {
 };
 
 const InsightsArticles = () => {
-  const articles = [1, 2, 3, 4];
+  const [articles, setArticles] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const response = await blogService.getAll({ limit: 4 });
+        if (!active) return;
+        setArticles(response.data.data.items || []);
+      } catch (_error) {
+        if (!active) return;
+        setArticles([]);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <section className="section-container" style={{ paddingTop: '3rem' }}>
       <h3 className="section-title mb-4">Insights & News</h3>
       <div className="insights-row">
         {articles.map((article) => (
-          <div className="insight-card" key={article}>
-            <div className="insight-img"></div>
+          <Link to={`/news-insights/${article.slug}`} className="insight-card" key={article._id}>
+            <img className="insight-img" src={article.featuredImage || 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80'} alt={article.title} loading="lazy" />
             <div className="insight-body">
-              <span className="insight-tag">Market Trends</span>
-              <div className="insight-title">Purandar real estate activity continues to expand with fresh residential and commercial demand.</div>
+              <span className="insight-tag">{article.category || 'Market Trends'}</span>
+              <div className="insight-title">{article.title}</div>
               <div className="insight-footer">
-                <span className="insight-date">Mar 30, 2026</span>
-                <a href="#" className="insight-link">Read More &rarr;</a>
+                <span className="insight-date">{new Date(article.publishDate || article.createdAt).toLocaleDateString('en-IN')}</span>
+                <span className="insight-link">Read More &rarr;</span>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </section>
   );
 };
-
-const AppBanner = () => (
-  <section className="app-banner">
-    <div className="app-banner-left">
-      <h2>Search on the go!</h2>
-      <p>Track listings, favourites, and enquiries from one account.</p>
-      <div className="store-btns">
-        <a href="#" className="store-btn">App Store</a>
-        <a href="#" className="store-btn">Google Play</a>
-      </div>
-    </div>
-    <div className="app-banner-right">
-      <span style={{ fontSize: '3rem', opacity: 0.5 }}>&#128241;</span>
-    </div>
-  </section>
-);
 
 const Footer = () => (
   <footer className="home-footer">
@@ -370,8 +375,9 @@ export default function Home() {
       <NewLaunchProjects />
       <InsightsArticles />
       <CategoriesGrid />
-      <AppBanner />
+      <AppInstallBanner />
       <Footer />
     </div>
   );
 }
+

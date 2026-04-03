@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import routes from './routes/index.js';
 import { env } from './config/env.js';
 import { errorHandler, notFound } from './middlewares/error.middleware.js';
+import { getSitemapXml } from './controllers/blog.controller.js';
 
 const app = express();
 
@@ -26,13 +27,15 @@ app.use(
   }),
 );
 app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
-app.use(express.json({ limit: '2mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 app.get('/api/v1/health', (_req, res) => {
   res.json({ success: true, message: 'Backend is healthy' });
 });
+
+app.get('/sitemap.xml', getSitemapXml);
 
 app.use('/api/v1', routes);
 app.use(notFound);

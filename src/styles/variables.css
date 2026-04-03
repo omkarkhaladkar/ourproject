@@ -1,22 +1,24 @@
 :root {
     /* Colors */
-    --background: #EFF2F5;
-    --foreground: #111827;
+    --background: #f5f5f5;
+    --foreground: #111111;
 
     --white: #ffffff;
     --black: #000000;
 
-    --indigo-50: #eef2ff;
-    --indigo-100: #e0e7ff;
-    --indigo-200: #c7d2fe;
-    --indigo-300: #a5b4fc;
-    --indigo-400: #818cf8;
-    --indigo-500: #6366f1;
-    --indigo-600: #4f46e5;
-    --indigo-700: #4338ca;
+    --indigo-50: #f7f7f7;
+    --indigo-100: #efefef;
+    --indigo-200: #dddddd;
+    --indigo-300: #c8c8c8;
+    --indigo-400: #8f8f8f;
+    --indigo-500: #555555;
+    --indigo-600: #1f1f1f;
+    --indigo-700: #121212;
+    --indigo-800: #0d0d0d;
+    --indigo-900: #050505;
 
-    --violet-500: #8b5cf6;
-    --violet-600: #7c3aed;
+    --violet-500: #4b4b4b;
+    --violet-600: #232323;
 
     --gray-50: #f9fafb;
     --gray-100: #f3f4f6;
@@ -31,15 +33,18 @@
     --gray-900: #111827;
 
     --red-500: #ef4444;
+    --red-50: #fef2f2;
+    --red-600: #dc2626;
+    --red-700: #b91c1c;
 
     /* Crypto Specific Colors */
-    --crypto-bg: #0D1117;
-    --crypto-navy: #0F1724;
-    --crypto-blue: #4F8EF7;
-    --crypto-purple: #7B5EF8;
-    --crypto-blue-light: #6BA3FF;
-    --crypto-surface: rgba(255, 255, 255, 0.05);
-    --crypto-border: rgba(255, 255, 255, 0.1);
+    --crypto-bg: #050505;
+    --crypto-navy: #111111;
+    --crypto-blue: #2a2a2a;
+    --crypto-purple: #3a3a3a;
+    --crypto-blue-light: #6a6a6a;
+    --crypto-surface: rgba(255, 255, 255, 0.04);
+    --crypto-border: rgba(255, 255, 255, 0.08);
 
     /* Spacing */
     --space-1: 0.25rem;

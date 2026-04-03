@@ -1,4 +1,5 @@
-﻿import React from 'react';
+import React from 'react';
+import { Building2, HandCoins, Home, Mail, Phone, UserRound } from 'lucide-react';
 
 const residentialTypes = [
     'Flat / Apartment',
@@ -26,10 +27,11 @@ export default function Step1BasicDetails({ formData, updateField, errors, isAdm
     return (
         <div className="ppf-step-content" key="step1">
             <h2 className="ppf-heading">
+                <span className="ppf-heading-icon"><Home size={18} /></span>
                 Welcome back <span>{formData.userName || 'User'}</span>, Fill out basic details
             </h2>
 
-            <p className="ppf-section-label">I'm looking to</p>
+            <p className="ppf-section-label"><span className="ppf-section-label-icon"><HandCoins size={15} /></span>I'm looking to</p>
             <div className="ppf-pill-group" role="group" aria-label="Listing intent">
                 {[
                     { value: 'sell', label: 'Sell' },
@@ -48,7 +50,7 @@ export default function Step1BasicDetails({ formData, updateField, errors, isAdm
                 ))}
             </div>
 
-            <p className="ppf-section-label">What kind of property do you have?</p>
+            <p className="ppf-section-label"><span className="ppf-section-label-icon"><Building2 size={15} /></span>What kind of property do you have?</p>
             <div className="ppf-radio-group">
                 <label className="ppf-radio-label" htmlFor="ppf-cat-res">
                     <input
@@ -92,53 +94,62 @@ export default function Step1BasicDetails({ formData, updateField, errors, isAdm
             </div>
             {errors.propertyType ? <p className="ppf-input-error">{errors.propertyType}</p> : null}
 
-            {isAdmin ? (
-                <div className="ppf-admin-contact-card">
-                    <div className="ppf-admin-contact-head">
-                        <div>
-                            <h3 className="ppf-admin-contact-title">Seller Display on Website</h3>
-                            <p className="ppf-admin-contact-subtitle">Choose whether the website should show the original owner contact or your custom seller details.</p>
-                        </div>
+            <div className="ppf-admin-contact-card">
+                <div className="ppf-admin-contact-head">
+                    <div>
+                        <h3 className="ppf-admin-contact-title">{isAdmin ? 'Seller Display on Website' : 'Contact Details on Website'}</h3>
+                        <p className="ppf-admin-contact-subtitle">Choose whether the website should show the original owner contact or your custom seller details.</p>
                     </div>
-
-                    <div className="ppf-toggle-wrapper">
-                        <button
-                            type="button"
-                            className={`ppf-toggle ${formData.useOriginalSellerContact ? 'on' : ''}`}
-                            onClick={() => updateField('useOriginalSellerContact', !formData.useOriginalSellerContact)}
-                            aria-pressed={formData.useOriginalSellerContact}
-                        />
-                        <span className="ppf-toggle-label">Use original seller name and phone</span>
-                    </div>
-
-                    {!formData.useOriginalSellerContact ? (
-                        <div className="ppf-form-row">
-                            <div className="ppf-field">
-                                <label className="ppf-field-label">Custom Seller Name</label>
-                                <input
-                                    className={`ppf-input ${errors.displaySellerName ? 'error' : ''}`}
-                                    type="text"
-                                    placeholder="Enter seller name shown on website"
-                                    value={formData.displaySellerName}
-                                    onChange={(event) => updateField('displaySellerName', event.target.value)}
-                                />
-                                {errors.displaySellerName ? <p className="ppf-input-error">{errors.displaySellerName}</p> : null}
-                            </div>
-                            <div className="ppf-field">
-                                <label className="ppf-field-label">Custom Seller Phone</label>
-                                <input
-                                    className={`ppf-input ${errors.displaySellerPhone ? 'error' : ''}`}
-                                    type="text"
-                                    placeholder="Enter seller phone shown on website"
-                                    value={formData.displaySellerPhone}
-                                    onChange={(event) => updateField('displaySellerPhone', event.target.value)}
-                                />
-                                {errors.displaySellerPhone ? <p className="ppf-input-error">{errors.displaySellerPhone}</p> : null}
-                            </div>
-                        </div>
-                    ) : null}
                 </div>
-            ) : null}
+
+                <div className="ppf-toggle-wrapper">
+                    <button
+                        type="button"
+                        className={`ppf-toggle ${formData.useOriginalSellerContact ? 'on' : ''}`}
+                        onClick={() => updateField('useOriginalSellerContact', !formData.useOriginalSellerContact)}
+                        aria-pressed={formData.useOriginalSellerContact}
+                    />
+                    <span className="ppf-toggle-label">Use original seller name, phone, and email</span>
+                </div>
+
+                {!formData.useOriginalSellerContact ? (
+                    <div className="ppf-form-row">
+                        <div className="ppf-field">
+                            <label className="ppf-field-label"><span className="ppf-field-label-icon"><UserRound size={14} /></span>Custom Seller Name</label>
+                            <input
+                                className={`ppf-input ${errors.displaySellerName ? 'error' : ''}`}
+                                type="text"
+                                placeholder="Enter seller name shown on website"
+                                value={formData.displaySellerName}
+                                onChange={(event) => updateField('displaySellerName', event.target.value)}
+                            />
+                            {errors.displaySellerName ? <p className="ppf-input-error">{errors.displaySellerName}</p> : null}
+                        </div>
+                        <div className="ppf-field">
+                            <label className="ppf-field-label"><span className="ppf-field-label-icon"><Phone size={14} /></span>Custom Seller Phone</label>
+                            <input
+                                className={`ppf-input ${errors.displaySellerPhone ? 'error' : ''}`}
+                                type="text"
+                                placeholder="Enter seller phone shown on website"
+                                value={formData.displaySellerPhone}
+                                onChange={(event) => updateField('displaySellerPhone', event.target.value)}
+                            />
+                            {errors.displaySellerPhone ? <p className="ppf-input-error">{errors.displaySellerPhone}</p> : null}
+                        </div>
+                        <div className="ppf-field">
+                            <label className="ppf-field-label"><span className="ppf-field-label-icon"><Mail size={14} /></span>Custom Seller Email</label>
+                            <input
+                                className={`ppf-input ${errors.displaySellerEmail ? 'error' : ''}`}
+                                type="email"
+                                placeholder="Enter seller email shown on website"
+                                value={formData.displaySellerEmail || ''}
+                                onChange={(event) => updateField('displaySellerEmail', event.target.value)}
+                            />
+                            {errors.displaySellerEmail ? <p className="ppf-input-error">{errors.displaySellerEmail}</p> : null}
+                        </div>
+                    </div>
+                ) : null}
+            </div>
         </div>
     );
 }

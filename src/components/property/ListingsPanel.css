@@ -77,6 +77,18 @@
     color: var(--gray-700);
     box-shadow: var(--shadow-sm);
     white-space: nowrap;
+    cursor: default;
+}
+
+.listing-sort-select {
+    border: none;
+    background: transparent;
+    color: var(--gray-900);
+    font-size: 14px;
+    font-weight: 700;
+    outline: none;
+    cursor: pointer;
+    padding-right: 0.25rem;
 }
 
 .listings-grid {
@@ -84,6 +96,10 @@
     grid-template-columns: 1fr;
     gap: 1rem;
     padding-bottom: 40px;
+}
+
+.listing-project-card-wrap {
+    min-width: 0;
 }
 
 @media (min-width: 900px) {

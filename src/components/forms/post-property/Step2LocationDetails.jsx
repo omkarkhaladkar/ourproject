@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { MapPinned } from 'lucide-react';
 
 const cityData = {
     'Pune': [
@@ -100,7 +101,7 @@ export default function Step2LocationDetails({ formData, updateField, errors }) 
 
     return (
         <div className="ppf-step-content" key="step2">
-            <h2 className="ppf-heading">Where is your property located?</h2>
+            <h2 className="ppf-heading"><span className="ppf-heading-icon"><MapPinned size={18} /></span>Where is your property located?</h2>
 
             <div className="ppf-form-row">
                 <SearchableDropdown
@@ -217,3 +218,4 @@ export default function Step2LocationDetails({ formData, updateField, errors }) 
         </div>
     );
 }
+

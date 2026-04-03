@@ -1,6 +1,7 @@
-﻿import React from 'react';
-import { SlidersHorizontal } from 'lucide-react';
+import React from 'react';
+import { ArrowDownUp } from 'lucide-react';
 import PropertyCard from './PropertyCard';
+import ProjectCard from '../project/ProjectCard';
 import Loader from '../common/Loader';
 import EmptyState from '../common/EmptyState';
 import './ListingsPanel.css';
@@ -9,32 +10,70 @@ export default function ListingsPanel({
   title = 'Properties',
   subtitle = '',
   properties = [],
+  projects = [],
   loading = false,
   savedPropertyIds = new Set(),
   onToggleSave,
   onPropertyHover,
   activePropertyId,
+  sortValue = 'newest',
+  onSortChange,
 }) {
+  const totalResults = properties.length + projects.length;
+  const hoverTimeoutRef = React.useRef(null);
+
+  const clearPendingHover = React.useCallback(() => {
+    if (hoverTimeoutRef.current) {
+      window.clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+  }, []);
+
+  const handleCardHover = React.useCallback((propertyId) => {
+    clearPendingHover();
+    hoverTimeoutRef.current = window.setTimeout(() => {
+      onPropertyHover?.(propertyId);
+      hoverTimeoutRef.current = null;
+    }, 120);
+  }, [clearPendingHover, onPropertyHover]);
+
+  const handleListingsLeave = React.useCallback(() => {
+    clearPendingHover();
+    onPropertyHover?.('');
+  }, [clearPendingHover, onPropertyHover]);
+
+  React.useEffect(() => () => clearPendingHover(), [clearPendingHover]);
+
   return (
-    <div className="listings-panel scrollbar-hide">
+    <div className="listings-panel scrollbar-hide" onMouseLeave={handleListingsLeave}>
       <div className="listings-header">
         <div className="header-text-group">
           <h1>{title}</h1>
           <p className="listing-count-subtitle">
-            <span className="count-highlight">{properties.length}</span> {subtitle || 'properties available'}
+            <span className="count-highlight">{totalResults}</span> {subtitle || 'results available'}
           </p>
         </div>
 
         <div className="listings-controls">
-          <button className="btn-sort" type="button">
-            <SlidersHorizontal className="w-4 h-4" />
-            <span>Live from MongoDB</span>
-          </button>
+          <label className="btn-sort" htmlFor="listing-sort">
+            <ArrowDownUp className="w-4 h-4" />
+            <span>Sort by</span>
+            <select
+              id="listing-sort"
+              className="listing-sort-select"
+              value={sortValue}
+              onChange={(event) => onSortChange?.(event.target.value)}
+            >
+              <option value="newest">Newest</option>
+              <option value="priceAsc">Price: Low to High</option>
+              <option value="priceDesc">Price: High to Low</option>
+            </select>
+          </label>
         </div>
       </div>
 
       {loading ? <Loader label="Loading listings..." /> : null}
-      {!loading && properties.length === 0 ? <EmptyState title="No properties found" description="Try another filter combination." /> : null}
+      {!loading && totalResults === 0 ? <EmptyState title="No properties or projects found" description="Try another filter combination." /> : null}
 
       <div className="listings-grid">
         {properties.map((property) => (
@@ -43,9 +82,18 @@ export default function ListingsPanel({
             property={property}
             isSaved={savedPropertyIds.has(property._id)}
             onToggleSave={onToggleSave}
-            onHover={onPropertyHover}
+            onHover={handleCardHover}
             isActive={activePropertyId === property._id}
           />
+        ))}
+        {projects.map((project) => (
+          <div
+            key={project._id}
+            className="listing-project-card-wrap"
+            onMouseEnter={handleListingsLeave}
+          >
+            <ProjectCard project={project} />
+          </div>
         ))}
       </div>
     </div>
